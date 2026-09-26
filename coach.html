@@ -75,11 +75,11 @@ tailwind.config = {
         <div id="examMetaBar" class="hidden sm:flex items-center space-x-3 text-xs border-l border-slate-700 pl-4">
           <div>
             <span class="text-slate-400">Candidate:</span>
-            <span id="displayCandidateName" class="font-semibold text-slate-200 ml-1">LTM-Applicant</span>
+            <span id="displayCandidateName" class="font-semibold text-slate-200 ml-1">Applicant</span>
           </div>
           <div class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
             <span class="text-slate-400">ID:</span>
-            <span id="displayCandidateId" class="font-mono text-sky-400 ml-1">#LTM-78249</span>
+            <span id="displayCandidateId" class="font-mono text-sky-400 ml-1">#ID-00000</span>
           </div>
         </div>
 
@@ -153,11 +153,11 @@ tailwind.config = {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">Candidate Full Name</label>
-              <input id="inputCandidateName" type="text" value="Rohit Sharma" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Enter your full name" />
+              <input id="inputCandidateName" type="text" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Enter your full name" />
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">Target Role</label>
-              <input id="inputTargetRole" type="text" value="Associate Software Engineer (LTM)" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+              <input id="inputTargetRole" type="text" placeholder="e.g. Software Engineer" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" />
             </div>
           </div>
         </div>
@@ -364,8 +364,8 @@ tailwind.config = {
           <div class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-sky-100 text-sky-800 rounded-md">
             <span>Official SVAR Diagnostic Scorecard</span>
           </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="reportCandidateName">Rohit Sharma</h2>
-          <p class="text-xs text-slate-500 font-mono" id="reportCandidateMeta">Assessment ID: #LTM-78249 • LTIMindtree Spoken English Standard</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="reportCandidateName">Candidate Name</h2>
+          <p class="text-xs text-slate-500 font-mono" id="reportCandidateMeta">Assessment ID: #ID-00000 &bull; Role Name</p>
         </div>
 
         <!-- Overall Score Ring Card -->
@@ -561,6 +561,16 @@ tailwind.config = {
     </div>
   </div>
 
+  
+  <!-- Initialization Loading Screen -->
+  <div id="viewLoading" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden">
+    <div class="text-sky-400 text-5xl animate-spin mb-6">
+      <i class="fa-solid fa-spinner"></i>
+    </div>
+    <h2 class="text-2xl font-bold text-white mb-2">Generating Dynamic Assessment...</h2>
+    <p class="text-slate-300 text-sm">Please wait while our AI constructs your unique test questions.</p>
+  </div>
+
   <!-- MODAL: Audio & TTS Voice Settings -->
   <div id="modalSettings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 space-y-5 shadow-2xl">
@@ -602,6 +612,8 @@ tailwind.config = {
       </div>
     </div>
   </div>
+    <script src="env.js"></script>
+  <script src="questionGenerator.js"></script>
   <script src="coach.js"></script>
 </body>
 </html>

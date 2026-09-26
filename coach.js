@@ -1,122 +1,4 @@
-/* Question Database tailored for LTM SVAR Assessment */
-    const QUESTION_BANK = {
-      readAloud: [
-        {
-          id: 'ra_1',
-          section: 'Section 1: Read Aloud',
-          type: 'readAloud',
-          instruction: 'Read the following sentence aloud clearly after the beep.',
-          expectedText: 'The scheduled server migration to the AWS cloud environment will commence at midnight to minimize client downtime.',
-          timeLimit: 12
-        },
-        {
-          id: 'ra_2',
-          section: 'Section 1: Read Aloud',
-          type: 'readAloud',
-          instruction: 'Read the following sentence aloud clearly after the beep.',
-          expectedText: 'Please ensure all open Jira tickets are updated and merged into the main repository before our Agile sprint planning session.',
-          timeLimit: 12
-        },
-        {
-          id: 'ra_3',
-          section: 'Section 1: Read Aloud',
-          type: 'readAloud',
-          instruction: 'Read the following sentence aloud clearly after the beep.',
-          expectedText: 'Although the offshore team faced network connectivity issues, the critical security patch was deployed successfully.',
-          timeLimit: 12
-        }
-      ],
-      listenRepeat: [
-        {
-          id: 'lr_1',
-          section: 'Section 2: Listen & Repeat',
-          type: 'listenRepeat',
-          instruction: 'Listen carefully to the audio sentence. When the beep sounds, repeat it exactly as heard.',
-          expectedText: 'The client has requested a minor revision to the user interface on the login portal.',
-          timeLimit: 14
-        },
-        {
-          id: 'lr_2',
-          section: 'Section 2: Listen & Repeat',
-          type: 'listenRepeat',
-          instruction: 'Listen carefully to the audio sentence. When the beep sounds, repeat it exactly as heard.',
-          expectedText: 'Our quality assurance engineers found three critical bugs during the integration testing phase.',
-          timeLimit: 14
-        },
-        {
-          id: 'lr_3',
-          section: 'Section 2: Listen & Repeat',
-          type: 'listenRepeat',
-          instruction: 'Listen carefully to the audio sentence. When the beep sounds, repeat it exactly as heard.',
-          expectedText: 'Can you confirm if the API documentation has been shared with the third party vendors?',
-          timeLimit: 15
-        }
-      ],
-      sentenceMastery: [
-        {
-          id: 'sm_1',
-          section: 'Section 3: Sentence Mastery',
-          type: 'sentenceMastery',
-          instruction: 'Complete the sentence with the correct preposition or verb form and speak the full sentence aloud.',
-          promptText: 'The database administrator is responsible _____ managing the backend infrastructure.',
-          hint: 'Say the complete sentence replacing _____ with the correct preposition ("for")',
-          expectedText: 'The database administrator is responsible for managing the backend infrastructure.',
-          timeLimit: 15
-        },
-        {
-          id: 'sm_2',
-          section: 'Section 3: Sentence Mastery',
-          type: 'sentenceMastery',
-          instruction: 'Correct the grammatical error and speak the corrected sentence aloud.',
-          promptText: 'I will revert back to you with the project estimates by tomorrow morning.',
-          hint: 'Correct the redundancy (remove "back") and say the full sentence.',
-          expectedText: 'I will revert to you with the project estimates by tomorrow morning.',
-          timeLimit: 15
-        }
-      ],
-      situationalQA: [
-        {
-          id: 'sq_1',
-          section: 'Section 4: Situational Q&A',
-          type: 'situationalQA',
-          instruction: 'Listen to the situational question. Respond immediately with one or two complete, professional sentences.',
-          promptText: 'During a live deployment, you realize a critical piece of code was left out. What is your immediate next step?',
-          expectedKeywords: ['rollback', 'revert', 'inform', 'team', 'lead', 'client', 'deploy', 'fix', 'immediately'],
-          expectedText: 'I would immediately initiate a rollback to the previous stable version and inform my technical lead about the deployment failure.',
-          timeLimit: 20
-        },
-        {
-          id: 'sq_2',
-          section: 'Section 4: Situational Q&A',
-          type: 'situationalQA',
-          instruction: 'Listen to the situational question. Respond immediately with one or two complete, professional sentences.',
-          promptText: 'A client is frustrated because a feature delivery is delayed by two weeks. How do you address their concern on a call?',
-          expectedKeywords: ['apologize', 'explain', 'timeline', 'transparent', 'resource', 'update', 'reassure', 'commit'],
-          expectedText: 'I would apologize for the delay, transparently explain the technical blockers we faced, and provide a strict revised timeline for delivery.',
-          timeLimit: 20
-        }
-      ],
-      extempore: [
-        {
-          id: 'ex_1',
-          section: 'Section 5: Extempore Speech',
-          type: 'extempore',
-          instruction: 'You have 30 seconds to prepare your thoughts, followed by 45 seconds to speak continuously on the topic.',
-          promptText: 'Topic: The Importance of Agile Methodology in Managing IT Projects',
-          points: [
-            'How daily standups improve team communication',
-            'Flexibility in adapting to changing client requirements',
-            'Iterative delivery vs traditional waterfall models'
-          ],
-          prepTime: 20, 
-          timeLimit: 45
-        }
-      ]
-    };
-
-    // Web Audio Synthesizer for SVAR Assessment Chime (Standard 800Hz - 1000Hz dual chime)
-    
-    // ========================================================================
+// ========================================================================
     // SvarAudioEngine: Handles all audio output (Text-to-Speech & Chimes)
     // 1. Text-to-Speech (TTS): Reads questions aloud using window.speechSynthesis
     // 2. Chime Generator: Creates the "Beep" sound using the Web Audio API
@@ -379,50 +261,46 @@
             this.lastSpeechTime = Date.now();
           };
 
-          this.recognition.onresult = (event) => {
-            let interim = '';
-            let final = '';
-            const now = Date.now();
+                      this.recognition.onresult = (event) => {
+              let interim = '';
+              let final = '';
+              const now = Date.now();
 
-            // Detect long pauses (> 2 seconds between speech inputs)
-            if (this.lastSpeechTime && (now - this.lastSpeechTime > 2000)) {
-               this.pauseCount++;
-            }
-            this.lastSpeechTime = now;
-
-            for (let i = 0; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                final += event.results[i][0].transcript;
-              } else {
-                interim += event.results[i][0].transcript;
+              if (this.lastSpeechTime && (now - this.lastSpeechTime > 2000)) {
+                 this.pauseCount++;
               }
-            }
+              this.lastSpeechTime = now;
 
-            const combined = (final + ' ' + interim).trim();
-            if (combined) {
-              this.currentTranscript = combined;
-              this.hasSpoken = true;
-              document.getElementById('liveTranscriptDisplay').textContent = `"${combined}"`;
-              this.calculateLiveWpm(combined);
-            }
-          };
+              for (let i = 0; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                  final += event.results[i][0].transcript;
+                } else {
+                  interim += event.results[i][0].transcript;
+                }
+              }
 
-          this.recognition.onerror = (event) => {
-            console.warn('Speech recognition status:', event.error);
-            if (event.error === 'not-allowed') {
-              this.updateMicBadge(false, 'Mic Blocked');
-              document.getElementById('keyboardInputContainer').classList.remove('hidden');
-            }
-          };
+              const combined = (this.sessionTranscript + ' ' + final + ' ' + interim).trim();
+              if (combined) {
+                this.currentTranscript = combined;
+                this.hasSpoken = true;
+                document.getElementById('liveTranscriptDisplay').textContent = `"${combined}"`;
+                this.calculateLiveWpm(combined);
+              }
+            };
 
-          this.recognition.onend = () => {
-            if (this.isListening) {
-              // Try restarting if still in active turn
-              try { this.recognition.start(); } catch(e){}
-            } else {
-              this.updateMicBadge(false, 'Mic Standby');
-            }
-          };
+            // When recognition ends, save the final text so it doesn't get wiped out on restart
+            this.recognition.onend = () => {
+              if (this.currentTranscript) {
+                 this.sessionTranscript = this.currentTranscript; // Save progress
+              }
+              if (this.isListening) {
+                try {
+                  this.recognition.start();
+                } catch(e){}
+              } else {
+                this.updateMicBadge(false, 'Mic Standby');
+              }
+            };
 
           this.speechSupported = true;
         } else {
@@ -461,39 +339,49 @@
         }
       },
 
-      getRandomQuestion(drillKey) {
-        const list = QUESTION_BANK[drillKey];
-        if (!list || list.length === 0) return null;
-        const randomIdx = Math.floor(Math.random() * list.length);
-        return list[randomIdx];
+      async getRandomQuestion(drillKey) {
+        // Now it fetches dynamically generated AI questions from the in-memory database
+        return await getNextQuestion(drillKey);
       },
 
-      startFullMock() {
+      async startFullMock() {
         this.isUnlimitedMode = false;
         this.saveCandidateData();
         document.getElementById('btnExitPractice').classList.add('hidden');
-        // Assemble official full SVAR sequence
-        this.activeQuestions = [
-          ...QUESTION_BANK.readAloud,
-          ...QUESTION_BANK.listenRepeat,
-          ...QUESTION_BANK.sentenceMastery,
-          ...QUESTION_BANK.situationalQA,
-          ...QUESTION_BANK.extempore
-        ];
+        
+        // Assemble official full SVAR sequence by popping from the AI database
+        const qList = [];
+        for(let i=0; i<3; i++) qList.push(await getNextQuestion('readAloud'));
+        for(let i=0; i<3; i++) qList.push(await getNextQuestion('listenRepeat'));
+        for(let i=0; i<2; i++) qList.push(await getNextQuestion('sentenceMastery'));
+        for(let i=0; i<2; i++) qList.push(await getNextQuestion('situationalQA'));
+        for(let i=0; i<1; i++) qList.push(await getNextQuestion('extempore'));
+        
+        // Filter out nulls in case API failed
+        this.activeQuestions = qList.filter(q => q !== null);
+        
+        if (this.activeQuestions.length === 0) {
+            alert("Failed to load questions. Please check API Key.");
+            return;
+        }
+
         this.currentIndex = 0;
         this.results = [];
         this.showExamStage();
       },
 
-      startDrill(drillKey) {
+      async startDrill(drillKey) {
         this.isUnlimitedMode = true;
         this.currentDrillKey = drillKey;
         this.saveCandidateData();
         document.getElementById('btnExitPractice').classList.remove('hidden');
         
         // Grab a single random question for the unlimited practice session
-        const q = this.getRandomQuestion(drillKey);
-        if (!q) return;
+        const q = await this.getRandomQuestion(drillKey);
+        if (!q) {
+            alert("Failed to load question. Please check API Key.");
+            return;
+        }
         this.activeQuestions = [q];
         this.currentIndex = 0;
         this.results = [];
@@ -522,6 +410,7 @@
         clearInterval(this.timerInterval);
         this.stopRecording();
         this.currentTranscript = '';
+        this.sessionTranscript = '';
         this.hasSpoken = false;
         this.speakingStartTime = null;
         this.lastSpeechTime = null;
@@ -675,7 +564,10 @@
       },
 
       async startRecording() {
-        this.visualizer.start();
+        // Await the visualizer so mic permissions are fully granted BEFORE speech recognition starts
+        await this.visualizer.start();
+        this.isListening = true;
+        
         if (this.speechSupported && this.recognition) {
           try {
             this.recognition.start();
@@ -964,9 +856,11 @@
 
       bindEvents() {
         // Start full mock
-        document.getElementById('btnStartFullMock').addEventListener('click', () => {
+        document.getElementById('btnStartFullMock').addEventListener('click', async () => {
+          document.getElementById('viewLoading').classList.remove('hidden');
           this.audio.initContext();
-          this.startFullMock();
+          await this.startFullMock();
+          document.getElementById('viewLoading').classList.add('hidden');
         });
 
         // Open Drill Modal
@@ -980,11 +874,11 @@
 
         // Select specific drill
         document.querySelectorAll('.btnSelectDrill').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+          btn.addEventListener('click', async (e) => {
             const drillKey = e.currentTarget.getAttribute('data-drill');
             document.getElementById('modalDrill').classList.add('hidden');
             this.audio.initContext();
-            this.startDrill(drillKey);
+            await this.startDrill(drillKey);
           });
         });
 
@@ -999,8 +893,8 @@
         });
 
         // Unlimited Mode Buttons
-        document.getElementById('btnNextUnlimited').addEventListener('click', () => {
-          this.activeQuestions = [this.getRandomQuestion(this.currentDrillKey)];
+        document.getElementById('btnNextUnlimited').addEventListener('click', async () => {
+          this.activeQuestions = [await this.getRandomQuestion(this.currentDrillKey)];
           this.currentIndex = 0;
           this.loadCurrentQuestion();
         });
@@ -1049,9 +943,8 @@
           }
         });
 
-        // Retake Buttons
-        document.getElementById('btnRetakeMock').addEventListener('click', () => {
-          this.startFullMock();
+        document.getElementById('btnRetakeMock').addEventListener('click', async () => {
+          await this.startFullMock();
         });
 
         document.getElementById('btnBackToHome').addEventListener('click', () => {
@@ -1089,6 +982,8 @@
     };
 
     // Initialize application when DOM is ready
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       app.init();
+      // Optional: Preload the database slightly on startup (can happen in background)
+      // await initDatabase();
     });
