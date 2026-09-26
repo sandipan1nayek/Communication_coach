@@ -238,6 +238,7 @@
       fillersDetected: 0,
       currentTranscript: '',
       hasSpoken: false,
+        sessionHistory: [],
       speechSupported: false,
 
       init() {
@@ -421,8 +422,13 @@
         const total = this.activeQuestions.length;
 
         // Update top indices
-        document.getElementById('currentQuestionNum').textContent = this.currentIndex + 1;
-        document.getElementById('totalQuestionsNum').textContent = total;
+        if (this.isUnlimitedMode) {
+            document.getElementById('currentQuestionNum').textContent = this.sessionHistory ? this.sessionHistory.length + 1 : 1;
+            document.getElementById('totalQuestionsNum').textContent = '∞';
+        } else {
+            document.getElementById('currentQuestionNum').textContent = this.currentIndex + 1;
+            document.getElementById('totalQuestionsNum').textContent = total;
+        }
         document.getElementById('sectionBadge').textContent = q.section;
         document.getElementById('taskInstructionLabel').textContent = q.instruction;
         document.getElementById('liveTranscriptDisplay').textContent = '[Waiting for response...]';
@@ -589,6 +595,50 @@
         document.getElementById('btnMicAction').className = 'px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm';
       },
 
+      async triggerAiCheckpoint() {
+          const feedbackBox = document.getElementById('instantFeedbackBox');
+          const originalHTML = feedbackBox.innerHTML;
+          feedbackBox.innerHTML = `<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin text-2xl text-sky-500"></i><p class="mt-2 text-sm text-slate-600 font-medium">AI Coach is analyzing your last 5 answers...</p></div>`;
+          
+          const last5 = this.sessionHistory.slice(-5);
+          const report = await evaluateSessionWithCoach(last5);
+          
+          if (report) {
+              feedbackBox.innerHTML = `
+                  <div class="space-y-3">
+                      <div class="flex items-center space-x-2 text-sky-800 font-bold">
+                          <i class="fa-solid fa-robot"></i> <span>AI Coach Checkpoint</span>
+                      </div>
+                      <p class="text-xs text-slate-700 italic">"${report.finalCoachMessage}"</p>
+                      <div class="grid grid-cols-2 gap-2 text-[11px]">
+                          <div class="bg-emerald-50 p-2 rounded border border-emerald-100">
+                              <span class="font-bold text-emerald-800">Strengths:</span>
+                              <ul class="list-disc pl-3 text-emerald-700 mt-1">${report.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+                          </div>
+                          <div class="bg-rose-50 p-2 rounded border border-rose-100">
+                              <span class="font-bold text-rose-800">Focus Areas:</span>
+                              <ul class="list-disc pl-3 text-rose-700 mt-1">${report.weaknesses.map(s => `<li>${s}</li>`).join('')}</ul>
+                          </div>
+                      </div>
+                      <div class="mt-2 pt-2 border-t border-slate-200">
+                         <button id="btnDismissCheckpoint" class="text-xs font-semibold px-3 py-1.5 bg-slate-200 hover:bg-slate-300 rounded text-slate-700">Continue Drill</button>
+                      </div>
+                  </div>
+              `;
+              
+              document.getElementById('btnNextUnlimited').classList.add('hidden');
+              document.getElementById('btnRetryUnlimited').classList.add('hidden');
+              
+              document.getElementById('btnDismissCheckpoint').addEventListener('click', () => {
+                  feedbackBox.innerHTML = originalHTML;
+                  document.getElementById('btnNextUnlimited').classList.remove('hidden');
+                  document.getElementById('btnRetryUnlimited').classList.remove('hidden');
+              });
+          } else {
+              feedbackBox.innerHTML = originalHTML + `<p class="text-xs text-rose-600 mt-2">Failed to load AI checkpoint.</p>`;
+          }
+      },
+
       submitCurrentAnswer() {
         clearInterval(this.timerInterval);
         this.stopRecording();
@@ -598,7 +648,15 @@
         const spokenText = (manualInput || this.currentTranscript).trim();
 
         // Calculate string & phonetic similarity
-        const evaluation = this.gradeResponse(q, spokenText);
+        
+          // Add to AI Coach Session History
+          this.sessionHistory.push({
+            section: q.type,
+            question: q.promptText || q.expectedText || (q.points ? q.points.join(', ') : 'Unknown'),
+            userSpoken: spokenText || '[No response]'
+          });
+
+          const evaluation = this.gradeResponse(q, spokenText);
 
         if (this.isUnlimitedMode) {
           // Unlimited practice mode: Show immediate feedback, don't move to next automatically
@@ -614,6 +672,11 @@
           document.getElementById('btnSubmitAnswer').classList.add('hidden');
           document.getElementById('btnRetryUnlimited').classList.remove('hidden');
           document.getElementById('btnNextUnlimited').classList.remove('hidden');
+            // AI Coach Checkpoint every 5 questions
+            if (this.sessionHistory.length > 0 && this.sessionHistory.length % 5 === 0) {
+                this.triggerAiCheckpoint();
+            }
+
         } else {
           // Normal test mode
           this.results.push({
@@ -646,7 +709,7 @@
         const wordsSpoken = cleanUser.split(/\s+/).filter(Boolean);
         
         // Advanced Filler Detection
-        const fillerRegex = /\b(um|uh|like|basically|actually|literally|you know|so yeah)\b/gi;
+        const fillerRegex = /\b(um|uh|hm|ahhh|uhhh)\b/gi;
         const matchedFillers = userSpoken.match(fillerRegex) || [];
         this.fillersDetected = matchedFillers.length;
 
@@ -736,123 +799,97 @@
           feedback: accuracy >= 90 ? 'Excellent verbatim alignment.' : 'Watch out for dropped words or hesitations.'
         };
       },
+        async showFinalReport() {
+          document.getElementById('viewExamStage').classList.add('hidden');
+          document.getElementById('testProgressBarContainer').classList.add('hidden');
+          document.getElementById('viewResults').classList.remove('hidden');
 
-      showFinalReport() {
-        document.getElementById('viewExamStage').classList.add('hidden');
-        document.getElementById('testProgressBarContainer').classList.add('hidden');
-        document.getElementById('viewResults').classList.remove('hidden');
+          // Show Loading UI in Results
+          const viewResults = document.getElementById('viewResults');
+          const originalContent = viewResults.innerHTML;
+          viewResults.innerHTML = `
+            <div class="max-w-2xl mx-auto w-full text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm mt-10">
+                <i class="fa-solid fa-brain fa-spin text-5xl text-sky-500 mb-4"></i>
+                <h2 class="text-2xl font-bold text-slate-800">AI Coach is evaluating your test...</h2>
+                <p class="text-slate-500 mt-2 text-sm">Please wait while the AI analyzes your grammar, fluency, and answers.</p>
+            </div>
+          `;
 
-        // Calculate aggregate scores
-        let totalScoreSum = 0;
-        let totalFillers = 0;
-        let totalPauses = 0;
-        
-        this.results.forEach(r => {
-            totalScoreSum += r.evaluation.score;
-            totalFillers += (r.evaluation.fillers || 0);
-            totalPauses += (r.evaluation.pauses || 0);
-        });
-        
-        const overallScore = Math.round(totalScoreSum / Math.max(1, this.results.length));
+          // Fetch from Gemini
+          const report = await evaluateSessionWithCoach(this.sessionHistory);
 
-        // Subscores
-        const pronunciationScore = Math.min(98, Math.max(40, overallScore + 3));
-        const grammarScore = Math.min(96, Math.max(35, overallScore - 2));
-        const retentionScore = Math.min(95, Math.max(30, overallScore + 1));
-        
-        // Dynamic WPM penalty based on pauses
-        const averageWpm = Math.max(60, 120 - (totalPauses * 5) - (totalFillers * 2)); 
-
-        // CEFR Level & LTM cutoff indicator
-        let cefr = 'B2';
-        let isQualified = overallScore >= 65;
-        if (overallScore >= 85) cefr = 'C1 (Advanced)';
-        else if (overallScore >= 70) cefr = 'B2 (Vantage/Proficient)';
-        else if (overallScore >= 55) cefr = 'B1 (Intermediate)';
-        else cefr = 'A2 (Elementary)';
-
-        // Populate DOM elements
-        document.getElementById('reportCandidateName').textContent = this.candidate.name;
-        document.getElementById('reportCandidateMeta').textContent = `Role: ${this.candidate.role} • Assessment ID: ${this.candidate.id}`;
-        document.getElementById('reportOverallScore').textContent = overallScore;
-        document.getElementById('reportCefrGrade').textContent = cefr.split(' ')[0];
-
-        const ltmBadge = document.getElementById('reportLtmStatus');
-        if (isQualified) {
-          ltmBadge.className = 'text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full';
-          ltmBadge.textContent = 'LTM QUALIFIED';
-        } else {
-          ltmBadge.className = 'text-xs font-bold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full';
-          ltmBadge.textContent = 'BELOW CUTOFF (Target 65+)';
-        }
-
-        // Sub-bars
-        document.getElementById('scorePronunciation').textContent = pronunciationScore;
-        document.getElementById('barPronunciation').style.width = `${pronunciationScore}%`;
-
-        document.getElementById('scoreFluency').textContent = averageWpm;
-        document.getElementById('barFluency').style.width = '88%';
-
-        document.getElementById('scoreGrammar').textContent = grammarScore;
-        document.getElementById('barGrammar').style.width = `${grammarScore}%`;
-
-        document.getElementById('scoreRetention').textContent = retentionScore;
-        document.getElementById('barRetention').style.width = `${retentionScore}%`;
-
-        // Render question breakdown list
-        const listContainer = document.getElementById('questionBreakdownList');
-        listContainer.innerHTML = '';
-
-        this.results.forEach((item, index) => {
-          const card = document.createElement('div');
-          card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2';
-
-          const scoreColor = item.evaluation.score >= 80 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' :
-                             item.evaluation.score >= 60 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-rose-600 bg-rose-50 border-rose-200';
-
-          let comparisonHtml = '';
-          if (item.question.expectedText) {
-            comparisonHtml = `
-              <div class="text-xs text-slate-500 mt-1">
-                <strong class="text-slate-700">Expected:</strong> "${item.question.expectedText}"
-              </div>
-            `;
+          if (!report) {
+              viewResults.innerHTML = `<div class="text-center py-20"><h2 class="text-red-500 text-xl font-bold">Failed to load AI Report.</h2><button onclick="location.reload()" class="mt-4 px-4 py-2 bg-sky-600 text-white rounded">Reload</button></div>`;
+              return;
           }
 
-          let mistakesHtml = '';
-          if (item.evaluation.droppedWords && item.evaluation.droppedWords.length > 0) {
-            mistakesHtml = `
-              <div class="text-[11px] text-rose-600 mt-1 font-medium">
-                Dropped words: ${item.evaluation.droppedWords.map(w => `<span class="bg-rose-100 px-1 py-0.5 rounded text-rose-800 mx-0.5">${w}</span>`).join('')}
-              </div>
-            `;
+          // Restore UI
+          viewResults.innerHTML = originalContent;
+          
+          // Populate dynamic info
+          document.getElementById('reportCandidateName').textContent = this.candidate.name;
+          document.getElementById('reportCandidateMeta').innerHTML = `Assessment ID: ${this.candidate.id} &bull; ${this.candidate.role}`;
+
+          // Score Ring
+          document.getElementById('reportOverallScore').textContent = report.overallScore;
+          document.getElementById('reportCefrGrade').textContent = report.overallScore >= 80 ? 'C1' : (report.overallScore >= 60 ? 'B2' : 'B1');
+          const ltmTag = document.getElementById('reportLtmStatus');
+          if (ltmTag) {
+              if (report.overallScore >= 65) {
+                  ltmTag.className = 'text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full';
+                  ltmTag.textContent = 'QUALIFIED';
+              } else {
+                  ltmTag.className = 'text-xs font-bold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full';
+                  ltmTag.textContent = 'NOT QUALIFIED';
+              }
+          }
+
+          // Populate the question Breakdown List dynamically
+          const listContainer = document.getElementById('questionBreakdownList');
+          if (listContainer) {
+              listContainer.innerHTML = '';
+              report.detailedFeedback.forEach((item, index) => {
+                  listContainer.innerHTML += `
+                    <div class="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col space-y-2 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-6 h-6 rounded bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold">${index + 1}</span>
+                            <h4 class="text-sm font-semibold text-slate-800 line-clamp-1 flex-1" title="${item.question}">${item.question}</h4>
+                        </div>
+                        <div class="pl-8 space-y-2">
+                            <div class="text-xs">
+                                <span class="font-bold text-slate-600">You Said:</span>
+                                <span class="text-slate-800 italic">"${item.userSpoken}"</span>
+                            </div>
+                            <div class="text-xs bg-white border border-rose-100 p-2 rounded text-rose-800">
+                                <span class="font-bold">Coach Correction:</span> ${item.coachCorrection}
+                            </div>
+                            <div class="text-xs text-sky-700 font-medium">
+                                <i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Tip: ${item.actionableTip}
+                            </div>
+                        </div>
+                    </div>
+                  `;
+              });
           }
           
-          let advancedMetricsHtml = '';
-          if (item.evaluation.fillers > 0 || item.evaluation.pauses > 0) {
-              advancedMetricsHtml = `
-              <div class="text-[11px] text-amber-600 mt-1 font-semibold flex space-x-3">
-                ${item.evaluation.fillers > 0 ? `<span><i class="fa-solid fa-triangle-exclamation"></i> Fillers Detected: ${item.evaluation.fillers}</span>` : ''}
-                ${item.evaluation.pauses > 0 ? `<span><i class="fa-solid fa-pause"></i> Long Pauses: ${item.evaluation.pauses}</span>` : ''}
-              </div>`;
-          }
+          // Add listener to the buttons since innerHTML destroyed them
+          setTimeout(() => {
+              const backBtn = document.getElementById('btnBackToHome');
+              if (backBtn) {
+                  backBtn.addEventListener('click', () => {
+                      document.getElementById('viewResults').classList.add('hidden');
+                      document.getElementById('viewOnboarding').classList.remove('hidden');
+                  });
+              }
+              const retakeBtn = document.getElementById('btnRetakeMock');
+              if (retakeBtn) {
+                  retakeBtn.addEventListener('click', async () => {
+                      await this.startFullMock();
+                  });
+              }
+          }, 100);
+        },
 
-          card.innerHTML = `
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-700">${item.question.section} — Item #${index + 1}</span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded border ${scoreColor}">${item.evaluation.score}% Score</span>
-            </div>
-            ${comparisonHtml}
-            <div class="text-xs text-slate-800 mt-1 bg-white p-2.5 rounded-lg border border-slate-200">
-              <strong class="text-slate-600">You Spoke:</strong> "${item.userSpoken || '<No speech captured>'}"
-            </div>
-            ${mistakesHtml}
-            ${advancedMetricsHtml}
-            <div class="text-[11px] text-slate-500 italic mt-1">${item.evaluation.feedback}</div>
-          `;
-          listContainer.appendChild(card);
-        });
-      },
 
       bindEvents() {
         // Start full mock

@@ -150,3 +150,69 @@ async function initDatabase() {
     await Promise.all(sections.map(sec => ensureQuestionsLoaded(sec)));
     console.log("Initial database load complete.", QuestionDB);
 }
+
+
+// ============================================================================
+// AI COACH EVALUATOR LOGIC
+// ============================================================================
+
+async function evaluateSessionWithCoach(history) {
+    if (typeof GEMINI_API_KEY === 'undefined' || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+        console.error("Gemini API key is missing.");
+        return null;
+    }
+
+    const promptText = `You are an expert English Communication Coach grading an SVAR/Versant-style spoken English test.
+I am going to provide you with the exact unedited transcripts of what the user spoke in response to several questions.
+Your job is to provide a highly pinpointed, specific, and actionable evaluation. DO NOT give generic advice. Point out exactly which words they fumbled, what grammar they messed up, or where they failed to follow instructions.
+
+Here is the test session data:
+${JSON.stringify(history, null, 2)}
+
+Analyze the user's responses against the questions. 
+Return your evaluation STRICTLY as a JSON object with the following structure:
+{
+    "overallScore": 75, // A realistic score out of 100 based on their actual answers
+    "strengths": ["Pinpointed strength 1", "Pinpointed strength 2"],
+    "weaknesses": ["Pinpointed weakness 1 (quote their exact mistake)", "Pinpointed weakness 2"],
+    "detailedFeedback": [
+        {
+            "question": "The text of the question they were asked",
+            "userSpoken": "What they actually said",
+            "coachCorrection": "Point out the exact error and what they SHOULD have said",
+            "actionableTip": "A 1-sentence pro-tip to fix this specific issue"
+        }
+    ],
+    "finalCoachMessage": "A short, encouraging but strict closing remark summarizing their performance."
+}
+Return ONLY valid JSON. Do not include markdown formatting or backticks around the output.`;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { 
+                    response_mime_type: "application/json",
+                    temperature: 0.2 // Low temperature for analytical consistency
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        let generatedText = data.candidates[0].content.parts[0].text;
+        
+        // Clean markdown block if it exists
+        generatedText = generatedText.replace(/^```json/g, '').replace(/```$/g, '').trim();
+        
+        return JSON.parse(generatedText);
+    } catch (error) {
+        console.error("Coach Evaluation Error:", error);
+        return null;
+    }
+}
