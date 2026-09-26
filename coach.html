@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,10 +12,12 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
 
   <script>
-tailwind.config = {
+    tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
@@ -45,28 +48,25 @@ tailwind.config = {
 
   <link rel="stylesheet" href="coach.css" />
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-sky-100 selection:text-sky-900">
+
+<body
+  class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-sky-100 selection:text-sky-900">
 
   <!-- Top Navigation & Candidate Banner (SVAR / SHL Assessment Portal style) -->
   <header class="bg-slate-900 text-white border-b border-slate-800 shadow-sm sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center font-black text-white tracking-wider text-base shadow-inner">
-          LT
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-bold text-sm sm:text-base tracking-tight text-white">SVAR 2.0</span>
-            <span class="text-[10px] font-semibold uppercase bg-sky-900 text-sky-300 px-1.5 py-0.5 rounded border border-sky-700">LTIMindtree Edition</span>
-          </div>
-          <p class="text-xs text-slate-400 hidden sm:block">Automated Spoken English Evaluation & Fluency Benchmark</p>
+        <div
+          class="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center font-black text-white tracking-wider text-base shadow-inner">
+          COACH
         </div>
       </div>
 
       <!-- Candidate Status Badges -->
       <div class="flex items-center space-x-4">
         <!-- Audio & Mic Status Indicator -->
-        <div id="micIndicatorBadge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+        <div id="micIndicatorBadge"
+          class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span id="micStatusText">Mic Ready</span>
         </div>
@@ -77,14 +77,11 @@ tailwind.config = {
             <span class="text-slate-400">Candidate:</span>
             <span id="displayCandidateName" class="font-semibold text-slate-200 ml-1">Applicant</span>
           </div>
-          <div class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-            <span class="text-slate-400">ID:</span>
-            <span id="displayCandidateId" class="font-mono text-sky-400 ml-1">#ID-00000</span>
-          </div>
         </div>
 
         <!-- Audio Settings Button -->
-        <button id="btnOpenSettings" title="Voice & Audio Settings" class="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+        <button id="btnOpenSettings" title="Voice & Audio Settings"
+          class="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
           <i class="fa-solid fa-sliders text-sm"></i>
         </button>
       </div>
@@ -102,15 +99,16 @@ tailwind.config = {
     <!-- VIEW 1: WELCOME & ONBOARDING / SECTION SELECTOR -->
     <div id="viewOnboarding" class="space-y-8 max-w-4xl mx-auto w-full py-4">
       <div class="text-center space-y-3">
-        <span class="inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1 bg-sky-50 text-sky-700 border border-sky-200 rounded-full">
+        <span
+          class="inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1 bg-sky-50 text-sky-700 border border-sky-200 rounded-full">
           <i class="fa-solid fa-shield-halved text-sky-500"></i>
-          <span>Official SHL / Aspiring Minds Benchmark Protocol</span>
+          <span>Standard Pattern Based Assessment Structure</span>
         </span>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          SVAR Spoken English Assessment
+          SVAR Spoken English Assessment <br> Prepare for Interview on Any Kind of Topics
         </h1>
         <p class="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
-          Accredited simulation for LTIMindtree hiring drives. Practice speech rhythm, verbatim sentence accuracy, grammatical mastery, and 45-second extempore with automated AI scoring.
+          AI Integrated Live Evaluation system
         </p>
       </div>
 
@@ -133,7 +131,8 @@ tailwind.config = {
             </div>
             <div>
               <h4 class="font-semibold text-sm text-slate-900">Wait for the Chime</h4>
-              <p class="text-xs text-slate-500 mt-0.5">Speak only after the acoustic beep rings. Never talk over prompts.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Speak only after the acoustic beep rings. Never talk over
+                prompts.</p>
             </div>
           </div>
 
@@ -153,22 +152,27 @@ tailwind.config = {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">Candidate Full Name</label>
-              <input id="inputCandidateName" type="text" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Enter your full name" />
+              <input id="inputCandidateName" type="text"
+                class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                placeholder="Enter your full name" />
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">Target Role</label>
-              <input id="inputTargetRole" type="text" placeholder="e.g. Software Engineer" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+              <input id="inputTargetRole" type="text" placeholder="e.g. Software Engineer"
+                class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" />
             </div>
           </div>
         </div>
 
         <!-- Mode Buttons: Full Mock or Section Drill -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-          <button id="btnStartFullMock" class="w-full sm:w-auto px-8 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
+          <button id="btnStartFullMock"
+            class="w-full sm:w-auto px-8 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
             <i class="fa-solid fa-play"></i>
             <span>Start Full SVAR Mock Test (All 5 Sections)</span>
           </button>
-          <button id="btnOpenDrillModal" class="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
+          <button id="btnOpenDrillModal"
+            class="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
             <i class="fa-solid fa-list-check text-sky-600"></i>
             <span>Unlimited Practice Mode (Specific Section)</span>
           </button>
@@ -209,34 +213,41 @@ tailwind.config = {
     <div id="viewExamStage" class="hidden max-w-4xl mx-auto w-full space-y-6">
 
       <!-- Exam Status Header Strip -->
-      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+      <div
+        class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center space-x-3">
-          <div id="sectionBadge" class="px-3 py-1 bg-sky-100 text-sky-800 font-bold text-xs uppercase tracking-wider rounded-lg border border-sky-200">
+          <div id="sectionBadge"
+            class="px-3 py-1 bg-sky-100 text-sky-800 font-bold text-xs uppercase tracking-wider rounded-lg border border-sky-200">
             Section 1: Read Aloud
           </div>
           <div class="text-xs text-slate-500 font-medium">
-            Question <span id="currentQuestionNum" class="font-bold text-slate-800">1</span> of <span id="totalQuestionsNum" class="font-bold text-slate-800">12</span>
+            Question <span id="currentQuestionNum" class="font-bold text-slate-800">1</span> of <span
+              id="totalQuestionsNum" class="font-bold text-slate-800">12</span>
           </div>
         </div>
 
         <!-- Timer / Recording State Tracker -->
         <div class="flex items-center space-x-3">
-          <div id="countdownBox" class="flex items-center space-x-1.5 font-mono text-sm px-3 py-1 rounded-md bg-slate-100 text-slate-700">
+          <div id="countdownBox"
+            class="flex items-center space-x-1.5 font-mono text-sm px-3 py-1 rounded-md bg-slate-100 text-slate-700">
             <i class="fa-regular fa-clock text-xs text-slate-400"></i>
             <span id="countdownDisplay">00:15</span>
           </div>
-          
-          <button id="btnExitPractice" class="text-xs text-rose-600 hover:text-rose-900 border border-rose-300 hover:bg-rose-50 px-3 py-1 rounded-md transition font-medium hidden">
+
+          <button id="btnExitPractice"
+            class="text-xs text-rose-600 hover:text-rose-900 border border-rose-300 hover:bg-rose-50 px-3 py-1 rounded-md transition font-medium hidden">
             <i class="fa-solid fa-right-from-bracket mr-1"></i> Exit Practice
           </button>
-          <button id="btnSkipNext" class="text-xs text-slate-600 hover:text-slate-900 border border-slate-300 hover:bg-slate-100 px-3 py-1 rounded-md transition font-medium">
+          <button id="btnSkipNext"
+            class="text-xs text-slate-600 hover:text-slate-900 border border-slate-300 hover:bg-slate-100 px-3 py-1 rounded-md transition font-medium">
             Skip / Next <i class="fa-solid fa-forward-step ml-1"></i>
           </button>
         </div>
       </div>
 
       <!-- Main Interaction Question Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[380px]">
+      <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[380px]">
 
         <!-- Prompt Instruction & Scenario Banner -->
         <div>
@@ -245,7 +256,8 @@ tailwind.config = {
               <i class="fa-solid fa-volume-high text-sky-500"></i>
               <span id="taskInstructionLabel">Read the following sentence aloud clearly after the beep</span>
             </div>
-            <button id="btnReplayAudio" title="Re-listen to audio prompt" class="text-xs text-sky-600 hover:text-sky-800 font-medium flex items-center space-x-1 hidden">
+            <button id="btnReplayAudio" title="Re-listen to audio prompt"
+              class="text-xs text-sky-600 hover:text-sky-800 font-medium flex items-center space-x-1 hidden">
               <i class="fa-solid fa-rotate-left"></i>
               <span>Replay Audio</span>
             </button>
@@ -254,21 +266,25 @@ tailwind.config = {
           <!-- Prompt Display Box (Dynamic per section) -->
           <div id="promptContentArea" class="py-4 text-center">
             <!-- Normal Text Prompt for Read Aloud & Sentence Mastery -->
-            <p id="promptDisplayText" class="text-xl sm:text-2xl font-semibold text-slate-800 leading-relaxed max-w-2xl mx-auto">
+            <p id="promptDisplayText"
+              class="text-xl sm:text-2xl font-semibold text-slate-800 leading-relaxed max-w-2xl mx-auto">
               "The project deadline has been moved forward to next Wednesday morning."
             </p>
 
             <!-- Audio Playing Visualizer for Listen & Repeat -->
             <div id="promptAudioPlayerVisual" class="hidden flex-col items-center justify-center py-6 space-y-3">
-              <div class="w-16 h-16 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-2xl shadow-inner animate-pulse">
+              <div
+                class="w-16 h-16 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-2xl shadow-inner animate-pulse">
                 <i class="fa-solid fa-ear-listen"></i>
               </div>
               <p class="text-slate-600 text-sm font-medium">Listening to audio prompt... Memorize the sentence.</p>
-              <div class="text-xs text-slate-400 italic">(Text is masked during audio playback to simulate official SVAR)</div>
+              <div class="text-xs text-slate-400 italic">(Text is masked during audio playback to simulate official
+                SVAR)</div>
             </div>
 
             <!-- Extempore Prep Card -->
-            <div id="extemporeDetailsBox" class="hidden text-left bg-slate-50 p-5 rounded-xl border border-slate-200 max-w-xl mx-auto space-y-3 mt-2">
+            <div id="extemporeDetailsBox"
+              class="hidden text-left bg-slate-50 p-5 rounded-xl border border-slate-200 max-w-xl mx-auto space-y-3 mt-2">
               <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold uppercase">
                 <i class="fa-regular fa-lightbulb"></i>
                 <span>Key Points to Cover in your 45 Seconds</span>
@@ -285,16 +301,19 @@ tailwind.config = {
         <!-- Center Waveform & Real-Time Mic Input Display -->
         <div class="py-4 border-t border-slate-100 mt-6 flex flex-col items-center justify-center space-y-3">
           <!-- Mic Canvas Waveform -->
-          <div class="w-full max-w-md h-16 bg-slate-900 rounded-xl overflow-hidden relative shadow-inner flex items-center justify-center">
+          <div
+            class="w-full max-w-md h-16 bg-slate-900 rounded-xl overflow-hidden relative shadow-inner flex items-center justify-center">
             <canvas id="waveformCanvas" class="w-full h-full block"></canvas>
-            <div id="canvasOverlayPrompt" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-xs font-mono text-slate-300">
+            <div id="canvasOverlayPrompt"
+              class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-xs font-mono text-slate-300">
               <span id="canvasPromptText">Waiting for audio chime...</span>
             </div>
           </div>
 
           <!-- Real-Time Speech Recognition Live Transcript -->
           <div class="w-full max-w-2xl bg-slate-50 border border-slate-200 rounded-xl p-3 text-left">
-            <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">
+            <div
+              class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">
               <span>Your Spoken Transcript (Live AI Audio Feed)</span>
               <span id="liveWpmBadge" class="text-slate-400 font-mono">0 WPM</span>
             </div>
@@ -314,19 +333,23 @@ tailwind.config = {
 
           <!-- Speaking & Submission Actions -->
           <div class="flex items-center space-x-3 ml-auto">
-            <button id="btnMicAction" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+            <button id="btnMicAction"
+              class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
               <i class="fa-solid fa-microphone"></i>
               <span id="btnMicActionText">Record Response</span>
             </button>
-            <button id="btnSubmitAnswer" class="px-6 py-2.5 rounded-xl font-semibold text-sm bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all flex items-center space-x-2">
+            <button id="btnSubmitAnswer"
+              class="px-6 py-2.5 rounded-xl font-semibold text-sm bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all flex items-center space-x-2">
               <span>Submit & Next</span>
               <i class="fa-solid fa-arrow-right"></i>
             </button>
-            <button id="btnRetryUnlimited" class="hidden px-6 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm transition-all flex items-center space-x-2 border border-slate-300">
+            <button id="btnRetryUnlimited"
+              class="hidden px-6 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm transition-all flex items-center space-x-2 border border-slate-300">
               <i class="fa-solid fa-rotate-left"></i>
               <span>Try Again</span>
             </button>
-            <button id="btnNextUnlimited" class="hidden px-6 py-2.5 rounded-xl font-semibold text-sm bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all flex items-center space-x-2">
+            <button id="btnNextUnlimited"
+              class="hidden px-6 py-2.5 rounded-xl font-semibold text-sm bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all flex items-center space-x-2">
               <span>Next Random Q</span>
               <i class="fa-solid fa-forward-step"></i>
             </button>
@@ -335,17 +358,21 @@ tailwind.config = {
 
         <!-- Fallback Input Drawer -->
         <div id="keyboardInputContainer" class="hidden mt-4 pt-3 border-t border-slate-200">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Manual Transcript Fallback (Tested verbatim if speech API blocked):</label>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Manual Transcript Fallback (Tested verbatim if
+            speech API blocked):</label>
           <div class="flex space-x-2">
-            <input id="inputManualFallback" type="text" placeholder="Type what you spoke here..." class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" />
-            <button id="btnApplyManualText" class="px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-900">Apply</button>
+            <input id="inputManualFallback" type="text" placeholder="Type what you spoke here..."
+              class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+            <button id="btnApplyManualText"
+              class="px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-900">Apply</button>
           </div>
         </div>
 
       </div>
 
       <!-- Immediate Per-Question Quick Score Toast (Collapsible) -->
-      <div id="instantFeedbackBox" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start space-x-3 transition-all animate-fadeIn">
+      <div id="instantFeedbackBox"
+        class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start space-x-3 transition-all animate-fadeIn">
         <div class="text-emerald-600 text-xl"><i class="fa-solid fa-circle-check"></i></div>
         <div class="flex-1 text-xs">
           <div class="font-bold text-emerald-900" id="feedbackTitle">Sentence Accuracy: 94%</div>
@@ -359,13 +386,16 @@ tailwind.config = {
     <div id="viewResults" class="hidden max-w-5xl mx-auto w-full space-y-8 py-4">
 
       <!-- Candidate Certificate / Header Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="space-y-2 text-center md:text-left">
-          <div class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-sky-100 text-sky-800 rounded-md">
+          <div
+            class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-sky-100 text-sky-800 rounded-md">
             <span>Official SVAR Diagnostic Scorecard</span>
           </div>
           <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="reportCandidateName">Candidate Name</h2>
-          <p class="text-xs text-slate-500 font-mono" id="reportCandidateMeta">Assessment ID: #ID-00000 &bull; Role Name</p>
+          <p class="text-xs text-slate-500 font-mono" id="reportCandidateMeta">Assessment ID: #ID-00000 &bull; Role Name
+          </p>
         </div>
 
         <!-- Overall Score Ring Card -->
@@ -381,7 +411,8 @@ tailwind.config = {
           </div>
           <div class="w-px h-12 bg-slate-200 hidden sm:block"></div>
           <div class="text-center hidden sm:block">
-            <div id="reportLtmStatus" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
+            <div id="reportLtmStatus"
+              class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
               LTM QUALIFIED
             </div>
             <div class="text-[11px] font-medium text-slate-500 mt-1">Cutoff: 65+</div>
@@ -460,14 +491,18 @@ tailwind.config = {
 
       <!-- Detailed Breakdown & Question Review List -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900">Item-by-Item Transcript Analysis</h3>
             <p class="text-xs text-slate-500">Compare your spoken transcript against the expected SVAR response.</p>
           </div>
           <div class="flex items-center space-x-3 text-xs font-medium">
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> <span>Accurate</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> <span>Omitted / Mismatched</span></span>
+            <span class="flex items-center space-x-1"><span
+                class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> <span>Accurate</span></span>
+            <span class="flex items-center space-x-1"><span
+                class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> <span>Omitted /
+                Mismatched</span></span>
           </div>
         </div>
 
@@ -483,18 +518,23 @@ tailwind.config = {
             <span>Executive Tips for Cracking LTIMindtree SVAR</span>
           </div>
           <ul class="text-xs text-sky-800 space-y-2 list-disc pl-5">
-            <li><strong>Avoid Filler Hesitations:</strong> In Section 5 (Extempore), long pauses (>2 seconds) or repeating "like", "actually", "basically" immediately triggers scoring deductions.</li>
-            <li><strong>Verbatim Precision in Read Aloud:</strong> Do not paraphrase. If the text says <em>"delayed by two hours"</em>, saying <em>"two hours late"</em> fails the automatic string aligner.</li>
-            <li><strong>Complete Sentence Answers:</strong> In Section 4 (Situational Q&A), always reply in a full grammatical subject-predicate clause rather than short one-phrase fragments.</li>
+            <li><strong>Avoid Filler Hesitations:</strong> In Section 5 (Extempore), long pauses (>2 seconds) or
+              repeating "like", "actually", "basically" immediately triggers scoring deductions.</li>
+            <li><strong>Verbatim Precision in Read Aloud:</strong> Do not paraphrase. If the text says <em>"delayed by
+                two hours"</em>, saying <em>"two hours late"</em> fails the automatic string aligner.</li>
+            <li><strong>Complete Sentence Answers:</strong> In Section 4 (Situational Q&A), always reply in a full
+              grammatical subject-predicate clause rather than short one-phrase fragments.</li>
           </ul>
         </div>
 
         <!-- Retake & Drill Action Buttons -->
         <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
-          <button id="btnRetakeMock" class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow transition">
+          <button id="btnRetakeMock"
+            class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow transition">
             <i class="fa-solid fa-rotate-right mr-2"></i> Retake Full Mock Test
           </button>
-          <button id="btnBackToHome" class="px-6 py-3 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition">
+          <button id="btnBackToHome"
+            class="px-6 py-3 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition">
             <i class="fa-solid fa-house mr-2"></i> Back to Main Menu
           </button>
         </div>
@@ -505,7 +545,8 @@ tailwind.config = {
   </main>
 
   <!-- MODAL: Drill Practice Selection Modal -->
-  <div id="modalDrill" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div id="modalDrill"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-lg w-full p-6 space-y-6 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
@@ -518,7 +559,8 @@ tailwind.config = {
       </div>
 
       <div class="space-y-2.5">
-        <button data-drill="readAloud" class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
+        <button data-drill="readAloud"
+          class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
           <div>
             <div class="font-semibold text-sm text-slate-800">Section 1: Read Aloud</div>
             <div class="text-xs text-slate-500">Sentence reading, articulation & pace</div>
@@ -526,7 +568,8 @@ tailwind.config = {
           <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
         </button>
 
-        <button data-drill="listenRepeat" class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
+        <button data-drill="listenRepeat"
+          class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
           <div>
             <div class="font-semibold text-sm text-slate-800">Section 2: Listen & Repeat</div>
             <div class="text-xs text-slate-500">Audio playback, memory & verbatim recitation</div>
@@ -534,7 +577,8 @@ tailwind.config = {
           <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
         </button>
 
-        <button data-drill="sentenceMastery" class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
+        <button data-drill="sentenceMastery"
+          class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
           <div>
             <div class="font-semibold text-sm text-slate-800">Section 3: Sentence Mastery</div>
             <div class="text-xs text-slate-500">Fill in blanks, tense & grammar restructuring</div>
@@ -542,7 +586,8 @@ tailwind.config = {
           <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
         </button>
 
-        <button data-drill="situationalQA" class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
+        <button data-drill="situationalQA"
+          class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
           <div>
             <div class="font-semibold text-sm text-slate-800">Section 4: Situational Q&A</div>
             <div class="text-xs text-slate-500">Workplace scenario response in complete clauses</div>
@@ -550,7 +595,8 @@ tailwind.config = {
           <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
         </button>
 
-        <button data-drill="extempore" class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
+        <button data-drill="extempore"
+          class="btnSelectDrill w-full p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-left transition flex items-center justify-between">
           <div>
             <div class="font-semibold text-sm text-slate-800">Section 5: Extempore (45-sec Speech)</div>
             <div class="text-xs text-slate-500">30s preparation, spontaneous 45s flow & structure</div>
@@ -561,9 +607,10 @@ tailwind.config = {
     </div>
   </div>
 
-  
+
   <!-- Initialization Loading Screen -->
-  <div id="viewLoading" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden">
+  <div id="viewLoading"
+    class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden">
     <div class="text-sky-400 text-5xl animate-spin mb-6">
       <i class="fa-solid fa-spinner"></i>
     </div>
@@ -572,7 +619,8 @@ tailwind.config = {
   </div>
 
   <!-- MODAL: Audio & TTS Voice Settings -->
-  <div id="modalSettings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div id="modalSettings"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 space-y-5 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="font-bold text-base text-slate-900">Audio & Voice Engine Settings</h3>
@@ -584,7 +632,8 @@ tailwind.config = {
       <div class="space-y-4 text-xs">
         <div>
           <label class="block font-medium text-slate-700 mb-1">Synthesizer Voice (TTS Prompt Speaker)</label>
-          <select id="selectVoice" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+          <select id="selectVoice"
+            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
             <option value="">Default System Voice</option>
           </select>
         </div>
@@ -592,28 +641,32 @@ tailwind.config = {
         <div>
           <label class="block font-medium text-slate-700 mb-1">Prompt Speech Speed (Target SVAR: 1.0x)</label>
           <div class="flex items-center space-x-3">
-            <input id="rangeSpeechRate" type="range" min="0.8" max="1.2" step="0.05" value="1.0" class="flex-1 accent-sky-600 cursor-pointer" />
+            <input id="rangeSpeechRate" type="range" min="0.8" max="1.2" step="0.05" value="1.0"
+              class="flex-1 accent-sky-600 cursor-pointer" />
             <span id="labelSpeechRate" class="font-mono text-slate-600">1.0x</span>
           </div>
         </div>
 
         <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
           <span class="font-medium text-slate-700">Audio Chime Beep</span>
-          <button id="btnTestChime" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-md font-semibold text-slate-700 transition">
+          <button id="btnTestChime"
+            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-md font-semibold text-slate-700 transition">
             <i class="fa-solid fa-volume-high mr-1"></i> Test SVAR Beep
           </button>
         </div>
       </div>
 
       <div class="pt-2">
-        <button id="btnSaveSettings" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl transition">
+        <button id="btnSaveSettings"
+          class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl transition">
           Done & Apply
         </button>
       </div>
     </div>
   </div>
-    <script src="env.js?v=6"></script>
+  <script src="env.js?v=6"></script>
   <script src="questionGenerator.js?v=6"></script>
   <script src="coach.js?v=6"></script>
 </body>
+
 </html>
