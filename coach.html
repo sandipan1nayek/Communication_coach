@@ -170,7 +170,7 @@ tailwind.config = {
           </button>
           <button id="btnOpenDrillModal" class="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
             <i class="fa-solid fa-list-check text-sky-600"></i>
-            <span>Practice Specific Section Drill</span>
+            <span>Unlimited Practice Mode (Specific Section)</span>
           </button>
         </div>
 
@@ -225,6 +225,10 @@ tailwind.config = {
             <i class="fa-regular fa-clock text-xs text-slate-400"></i>
             <span id="countdownDisplay">00:15</span>
           </div>
+          
+          <button id="btnExitPractice" class="text-xs text-rose-600 hover:text-rose-900 border border-rose-300 hover:bg-rose-50 px-3 py-1 rounded-md transition font-medium hidden">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Exit Practice
+          </button>
           <button id="btnSkipNext" class="text-xs text-slate-600 hover:text-slate-900 border border-slate-300 hover:bg-slate-100 px-3 py-1 rounded-md transition font-medium">
             Skip / Next <i class="fa-solid fa-forward-step ml-1"></i>
           </button>
@@ -317,6 +321,14 @@ tailwind.config = {
             <button id="btnSubmitAnswer" class="px-6 py-2.5 rounded-xl font-semibold text-sm bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all flex items-center space-x-2">
               <span>Submit & Next</span>
               <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button id="btnRetryUnlimited" class="hidden px-6 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm transition-all flex items-center space-x-2 border border-slate-300">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>Try Again</span>
+            </button>
+            <button id="btnNextUnlimited" class="hidden px-6 py-2.5 rounded-xl font-semibold text-sm bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all flex items-center space-x-2">
+              <span>Next Random Q</span>
+              <i class="fa-solid fa-forward-step"></i>
             </button>
           </div>
         </div>

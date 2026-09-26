@@ -332,13 +332,16 @@
     // - Question flow and UI updates (hiding/showing views)
     // - Grading the user's responses
     // ========================================================================
-    const app = {
+        const app = {
       audio: new SvarAudioEngine(),
       visualizer: null,
       recognition: null,
       isListening: false,
       activeQuestions: [],
       currentIndex: 0,
+      isUnlimitedMode: false,
+      currentDrillKey: null,
+
       candidate: {
         name: 'Rohit Sharma',
         role: 'Associate Software Engineer (LTM)',
@@ -458,9 +461,18 @@
         }
       },
 
+      getRandomQuestion(drillKey) {
+        const list = QUESTION_BANK[drillKey];
+        if (!list || list.length === 0) return null;
+        const randomIdx = Math.floor(Math.random() * list.length);
+        return list[randomIdx];
+      },
+
       startFullMock() {
+        this.isUnlimitedMode = false;
         this.saveCandidateData();
-        // Assemble official full SVAR sequence (3 read aloud, 3 listen-repeat, 2 sentence mastery, 2 Q&A, 1 extempore)
+        document.getElementById('btnExitPractice').classList.add('hidden');
+        // Assemble official full SVAR sequence
         this.activeQuestions = [
           ...QUESTION_BANK.readAloud,
           ...QUESTION_BANK.listenRepeat,
@@ -474,10 +486,15 @@
       },
 
       startDrill(drillKey) {
+        this.isUnlimitedMode = true;
+        this.currentDrillKey = drillKey;
         this.saveCandidateData();
-        const list = QUESTION_BANK[drillKey];
-        if (!list || list.length === 0) return;
-        this.activeQuestions = [...list];
+        document.getElementById('btnExitPractice').classList.remove('hidden');
+        
+        // Grab a single random question for the unlimited practice session
+        const q = this.getRandomQuestion(drillKey);
+        if (!q) return;
+        this.activeQuestions = [q];
         this.currentIndex = 0;
         this.results = [];
         this.showExamStage();
@@ -522,6 +539,12 @@
         document.getElementById('liveTranscriptDisplay').textContent = '[Waiting for response...]';
         document.getElementById('liveWpmBadge').textContent = '0 WPM';
         document.getElementById('inputManualFallback').value = '';
+
+        // Reset UI for unlimited mode
+        document.getElementById('instantFeedbackBox').classList.add('hidden');
+        document.getElementById('btnSubmitAnswer').classList.remove('hidden');
+        document.getElementById('btnRetryUnlimited').classList.add('hidden');
+        document.getElementById('btnNextUnlimited').classList.add('hidden');
 
         // Update progress bar
         const progress = ((this.currentIndex) / total) * 100;
@@ -685,18 +708,35 @@
         // Calculate string & phonetic similarity
         const evaluation = this.gradeResponse(q, spokenText);
 
-        this.results.push({
-          question: q,
-          userSpoken: spokenText,
-          evaluation: evaluation
-        });
-
-        // Move to next question or show final report
-        this.currentIndex++;
-        if (this.currentIndex < this.activeQuestions.length) {
-          this.loadCurrentQuestion();
+        if (this.isUnlimitedMode) {
+          // Unlimited practice mode: Show immediate feedback, don't move to next automatically
+          const feedbackBox = document.getElementById('instantFeedbackBox');
+          feedbackBox.classList.remove('hidden');
+          
+          let titleColor = evaluation.score >= 80 ? 'text-emerald-900' : (evaluation.score >= 60 ? 'text-amber-900' : 'text-rose-900');
+          document.getElementById('feedbackTitle').className = `font-bold ${titleColor}`;
+          document.getElementById('feedbackTitle').textContent = `Score: ${evaluation.score}%`;
+          document.getElementById('feedbackDetails').textContent = evaluation.feedback;
+          
+          // Switch buttons
+          document.getElementById('btnSubmitAnswer').classList.add('hidden');
+          document.getElementById('btnRetryUnlimited').classList.remove('hidden');
+          document.getElementById('btnNextUnlimited').classList.remove('hidden');
         } else {
-          this.showFinalReport();
+          // Normal test mode
+          this.results.push({
+            question: q,
+            userSpoken: spokenText,
+            evaluation: evaluation
+          });
+
+          // Move to next question or show final report
+          this.currentIndex++;
+          if (this.currentIndex < this.activeQuestions.length) {
+            this.loadCurrentQuestion();
+          } else {
+            this.showFinalReport();
+          }
         }
       },
 
@@ -956,6 +996,25 @@
         // Submit button
         document.getElementById('btnSubmitAnswer').addEventListener('click', () => {
           this.submitCurrentAnswer();
+        });
+
+        // Unlimited Mode Buttons
+        document.getElementById('btnNextUnlimited').addEventListener('click', () => {
+          this.activeQuestions = [this.getRandomQuestion(this.currentDrillKey)];
+          this.currentIndex = 0;
+          this.loadCurrentQuestion();
+        });
+
+        document.getElementById('btnRetryUnlimited').addEventListener('click', () => {
+          this.loadCurrentQuestion(); // reloads the same question
+        });
+
+        document.getElementById('btnExitPractice').addEventListener('click', () => {
+          clearInterval(this.timerInterval);
+          this.stopRecording();
+          document.getElementById('viewExamStage').classList.add('hidden');
+          document.getElementById('testProgressBarContainer').classList.add('hidden');
+          document.getElementById('viewOnboarding').classList.remove('hidden');
         });
 
         // Replay audio button
