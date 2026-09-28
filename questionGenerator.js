@@ -28,7 +28,7 @@ const PROMPTS = {
     Format each object strictly as:
     { "type": "readAloud", "instruction": "Read the following paragraph aloud clearly after the beep.", "expectedText": "[Your 3-4 line paragraph here]", "timeLimit": 30 }`,
 
-    listenRepeat: `Generate a JSON array of {count} everyday conversational English sentences of varying lengths (from short to moderately long) for a "Listen and Repeat" assessment.
+    listenRepeat: `Generate a JSON array of {count} everyday conversational English sentences of varying lengths (as long normally in SVAR Assessment) for a "Listen and Repeat" assessment.
     Format each object strictly as:
     { "type": "listenRepeat", "instruction": "Listen carefully to the audio sentence. When the beep sounds, repeat it exactly as heard.", "expectedText": "[Your sentence here]", "timeLimit": 15 }`,
 
@@ -40,7 +40,7 @@ const PROMPTS = {
     Format each object strictly as:
     { "type": "situationalQA", "instruction": "Listen to the question. Respond immediately with a direct one- or two-word answer.", "promptText": "[The general knowledge question]", "expectedKeywords": ["[The one or two word expected answer]"], "timeLimit": 10 }`,
 
-    extempore: `Generate a JSON array of {count} simple, conversational, non-technical abstract prompts or personal experience themes for an "Extempore" speech assessment (e.g., 'Your favorite holiday destination', 'City life vs Village life'). DO NOT use technical IT topics.
+    extempore: `Generate a JSON array of 1 simple, conversational, non-technical abstract prompts or personal experience themes for an "Extempore" speech assessment(like SVAR in LTM placement). DO NOT use technical IT topics.
     Format each object strictly as:
     { "type": "extempore", "instruction": "You have 30 seconds to prepare your thoughts, followed by 60 seconds to speak continuously on the topic.", "promptText": "Topic: [The speech topic]", "points": ["[Idea 1 to talk about]", "[Idea 2]", "[Idea 3]"], "prepTime": 30, "timeLimit": 60 }`
 };
@@ -53,10 +53,11 @@ async function fetchFromGemini(section, count) {
 
     // Inject randomness so the AI generates fresh content every time
     const topics = [
-        "Everyday routines and habits", "Travel and holidays", "Food and cooking", 
-        "Childhood memories", "Hobbies and sports", "City vs Country life", 
-        "Technology in daily life", "Friendship and social life", "Movies and books", 
-        "Shopping and fashion", "Weather and seasons", "Time management"
+        "Everyday routines and habits", "Travel and holidays", "Food and cooking",
+        "Childhood memories", "Hobbies and sports", "City vs Country life",
+        "Technology in daily life", "Friendship and social life", "Movies and books",
+        "Shopping and fashion", "Weather and seasons", "Time management", "Innovation",
+        "Leadership qualities", "Current Events"
     ];
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const randomSeed = Math.floor(Math.random() * 1000000);
@@ -193,7 +194,7 @@ Return ONLY valid JSON. Do not include markdown formatting or backticks around t
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: { 
+                generationConfig: {
                     response_mime_type: "application/json",
                     temperature: 0.2 // Low temperature for analytical consistency
                 }
@@ -206,13 +207,14 @@ Return ONLY valid JSON. Do not include markdown formatting or backticks around t
 
         const data = await response.json();
         let generatedText = data.candidates[0].content.parts[0].text;
-        
+
         // Clean markdown block if it exists
         generatedText = generatedText.replace(/^```json/g, '').replace(/```$/g, '').trim();
-        
+
         return JSON.parse(generatedText);
     } catch (error) {
         console.error("Coach Evaluation Error:", error);
         return null;
     }
 }
+
