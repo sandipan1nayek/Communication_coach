@@ -45,11 +45,21 @@ const PROMPTS = {
     { "type": "extempore", "instruction": "You have 30 seconds to prepare your thoughts, followed by 60 seconds to speak continuously on the topic.", "promptText": "Topic: [The speech topic]", "points": ["[Idea 1 to talk about]", "[Idea 2]", "[Idea 3]"], "prepTime": 30, "timeLimit": 60 }`
 };
 
-async function fetchFromGemini(section, count) {
-    if (typeof GEMINI_API_KEY === 'undefined' || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
-        console.error("Gemini API key is missing. Please add it to env.js");
-        return [];
+function getGeminiEndpoint() {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+        if (typeof GEMINI_API_KEY === 'undefined' || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+            console.error("Gemini API key is missing. Please add it to env.js");
+            return null;
+        }
+        return `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
     }
+    return '/api/gemini';
+}
+
+async function fetchFromGemini(section, count) {
+    const endpoint = getGeminiEndpoint();
+    if (!endpoint) return [];
 
     // Inject randomness so the AI generates fresh content every time
     const topics = [
@@ -66,7 +76,7 @@ async function fetchFromGemini(section, count) {
     promptText += `\n\nCRITICAL INSTRUCTION: Ensure these questions are completely unique and highly varied. Base them loosely around the theme of "${randomTopic}". Random Seed for entropy: ${randomSeed}`;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -158,10 +168,8 @@ async function initDatabase() {
 // ============================================================================
 
 async function evaluateSessionWithCoach(history) {
-    if (typeof GEMINI_API_KEY === 'undefined' || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
-        console.error("Gemini API key is missing.");
-        return null;
-    }
+    const endpoint = getGeminiEndpoint();
+    if (!endpoint) return null;
 
     const promptText = `You are an expert English Communication Coach grading an SVAR/Versant-style spoken English test.
 I am going to provide you with the exact unedited transcripts of what the user spoke in response to several questions.
@@ -189,7 +197,7 @@ Return your evaluation STRICTLY as a JSON object with the following structure:
 Return ONLY valid JSON. Do not include markdown formatting or backticks around the output.`;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
