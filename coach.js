@@ -992,7 +992,7 @@ const app = {
     const listContainer = document.getElementById('questionBreakdownList');
     if (listContainer) {
       listContainer.innerHTML = '';
-      report.detailedFeedback.forEach((item, index) => {
+      mergedDetailedFeedback.forEach((item, index) => {
         listContainer.innerHTML += `
                     <div class="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col space-y-2 mb-3">
                         <div class="flex items-center space-x-2">
