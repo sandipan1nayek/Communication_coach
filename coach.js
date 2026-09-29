@@ -353,6 +353,11 @@ const app = {
     this.isBackgroundFetchComplete = false;
     this.isWaitingForQuestions = false;
     this.expectedTotalQuestions = 41;
+    this.backgroundEvaluations = [];
+    this.evaluationQueue = [];
+    this.isProcessingEvaluationQueue = false;
+    this.currentSectionHistory = [];
+    this.currentSectionType = null;
 
     console.log("Fetching Section 1 to start test instantly...");
     // 1. Fetch ONLY Section 1 to drop the loading screen as fast as possible
@@ -412,6 +417,7 @@ const app = {
             console.log("Background: Section 5 loaded.");
 
             this.isBackgroundFetchComplete = true;
+            this.processEvaluationQueue(); // Kick off the background grading queue now that API is free
 
             // Rescue Trigger: If the user was paused waiting for this, unpause them!
             if (this.isWaitingForQuestions) {
@@ -709,11 +715,14 @@ const app = {
     // Calculate string & phonetic similarity
 
     // Add to AI Coach Session History
-    this.sessionHistory.push({
+    const historyItem = {
       section: q.type,
       question: q.promptText || q.expectedText || (q.points ? q.points.join(', ') : 'Unknown'),
       userSpoken: spokenText || '[No response]'
-    });
+    };
+    this.sessionHistory.push(historyItem);
+    this.currentSectionHistory.push(historyItem);
+    this.currentSectionType = q.type;
 
     const evaluation = this.gradeResponse(q, spokenText);
 
@@ -744,6 +753,21 @@ const app = {
         evaluation: evaluation
       });
 
+      // Check if this was the last question of the CURRENT section
+      // Since we are about to increment currentIndex, we look at the NEXT question
+      const isLastOfSection = (this.currentIndex === this.activeQuestions.length - 1) || 
+                              (this.activeQuestions[this.currentIndex + 1] && this.activeQuestions[this.currentIndex + 1].type !== q.type);
+                              
+      if (isLastOfSection && !this.isUnlimitedMode) {
+          // Push a copy of current section history to the grading queue
+          this.evaluationQueue.push({
+              sectionType: this.currentSectionType,
+              history: [...this.currentSectionHistory]
+          });
+          this.currentSectionHistory = []; // Reset for next section
+          this.processEvaluationQueue(); // Trigger queue processing
+      }
+
       // Move to next question or show final report
       this.currentIndex++;
       if (this.currentIndex < this.activeQuestions.length) {
@@ -762,6 +786,32 @@ const app = {
         this.showFinalReport();
       }
     }
+  },
+
+  async processEvaluationQueue() {
+      if (!this.isBackgroundFetchComplete) return; // Wait until Google API finishes generating test questions
+      if (this.isProcessingEvaluationQueue) return; // Only process one grading chunk at a time
+      if (this.evaluationQueue.length === 0) return;
+
+      this.isProcessingEvaluationQueue = true;
+      const task = this.evaluationQueue.shift();
+
+      try {
+          console.log(`Background AI Grading started for section: ${task.sectionType}...`);
+          const report = await evaluateSectionWithCoach(task.sectionType, task.history);
+          if (report) {
+              this.backgroundEvaluations.push(report);
+              console.log(`Background AI Grading finished for section: ${task.sectionType}`);
+          }
+      } catch(e) {
+          console.error("Grading failed for section", e);
+      }
+
+      this.isProcessingEvaluationQueue = false;
+      // Loop if more items in queue
+      if (this.evaluationQueue.length > 0) {
+          this.processEvaluationQueue();
+      }
   },
 
 
@@ -873,21 +923,46 @@ const app = {
     document.getElementById('testProgressBarContainer').classList.add('hidden');
     document.getElementById('viewResults').classList.remove('hidden');
 
-    // Show Loading UI in Results
+    // Calculate Mathematical Objective Score
+    let totalScore = 0;
+    this.results.forEach(r => totalScore += r.evaluation.score);
+    const finalCalculatedScore = Math.round(totalScore / this.results.length);
+
+    // Show Loading UI in Results if AI is still finishing the background grading
     const viewResults = document.getElementById('viewResults');
     const originalContent = viewResults.innerHTML;
-    viewResults.innerHTML = `
+    
+    if (this.evaluationQueue.length > 0 || this.isProcessingEvaluationQueue) {
+        viewResults.innerHTML = `
             <div class="max-w-2xl mx-auto w-full text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm mt-10">
                 <i class="fa-solid fa-brain fa-spin text-5xl text-sky-500 mb-4"></i>
-                <h2 class="text-2xl font-bold text-slate-800">AI Coach is evaluating your test...</h2>
-                <p class="text-slate-500 mt-2 text-sm">Please wait while the AI analyzes your grammar, fluency, and answers.</p>
+                <h2 class="text-2xl font-bold text-slate-800">Finalizing Evaluation...</h2>
+                <p class="text-slate-500 mt-2 text-sm">Please wait while the AI finishes grading your final section.</p>
             </div>
-          `;
+        `;
+        // Wait loop until grading queue is completely empty
+        await new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+                if (this.evaluationQueue.length === 0 && !this.isProcessingEvaluationQueue) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 1000);
+        });
+    }
 
-    // Fetch from Gemini
-    const report = await evaluateSessionWithCoach(this.sessionHistory);
+    // Merge evaluations from the background chunks
+    let mergedDetailedFeedback = [];
+    let mergedStrengths = [];
+    let mergedWeaknesses = [];
 
-    if (!report) {
+    this.backgroundEvaluations.forEach(report => {
+        if(report.detailedFeedback) mergedDetailedFeedback.push(...report.detailedFeedback);
+        if(report.strengths) mergedStrengths.push(...report.strengths);
+        if(report.weaknesses) mergedWeaknesses.push(...report.weaknesses);
+    });
+
+    if (mergedDetailedFeedback.length === 0) {
       viewResults.innerHTML = `<div class="text-center py-20"><h2 class="text-red-500 text-xl font-bold">Failed to load AI Report.</h2><button onclick="location.reload()" class="mt-4 px-4 py-2 bg-sky-600 text-white rounded">Reload</button></div>`;
       return;
     }
@@ -899,12 +974,12 @@ const app = {
     document.getElementById('reportCandidateName').textContent = this.candidate.name;
     document.getElementById('reportCandidateMeta').innerHTML = `Assessment ID: ${this.candidate.id} &bull; ${this.candidate.role}`;
 
-    // Score Ring
-    document.getElementById('reportOverallScore').textContent = report.overallScore;
-    document.getElementById('reportCefrGrade').textContent = report.overallScore >= 80 ? 'C1' : (report.overallScore >= 60 ? 'B2' : 'B1');
+    // Score Ring (Using mathematical objective score!)
+    document.getElementById('reportOverallScore').textContent = finalCalculatedScore;
+    document.getElementById('reportCefrGrade').textContent = finalCalculatedScore >= 80 ? 'C1' : (finalCalculatedScore >= 60 ? 'B2' : 'B1');
     const ltmTag = document.getElementById('reportLtmStatus');
     if (ltmTag) {
-      if (report.overallScore >= 65) {
+      if (finalCalculatedScore >= 65) {
         ltmTag.className = 'text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full';
         ltmTag.textContent = 'QUALIFIED';
       } else {

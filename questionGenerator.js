@@ -167,21 +167,43 @@ async function initDatabase() {
 // AI COACH EVALUATOR LOGIC
 // ============================================================================
 
-async function evaluateSessionWithCoach(history) {
+async function evaluateSectionWithCoach(sectionType, sectionHistory) {
     const endpoint = getGeminiEndpoint();
     if (!endpoint) return null;
 
-    const promptText = `You are an expert English Communication Coach grading an SVAR/Versant-style spoken English test.
-I am going to provide you with the exact unedited transcripts of what the user spoke in response to several questions.
-Your job is to provide a highly pinpointed, specific, and actionable evaluation. DO NOT give generic advice. Point out exactly which words they fumbled, what grammar they messed up, or where they failed to follow instructions.
+    let sectionInstruction = "";
+    switch(sectionType) {
+        case "readAloud":
+            sectionInstruction = "Grade ONLY on pronunciation, skipped words, and fluency. Ignore grammatical logic since they are just reading text.";
+            break;
+        case "listenRepeat":
+            sectionInstruction = "Grade on whether they accurately repeated the exact sentence verbatim without adding or dropping words, and check pronunciation.";
+            break;
+        case "sentenceMastery":
+            sectionInstruction = "Grade heavily on grammar. They were given scrambled chunks of a sentence. Did they assemble them into a grammatically correct sentence?";
+            break;
+        case "situationalQA":
+            sectionInstruction = "Grade heavily on accuracy. Did they provide the factually correct one-word or two-word answer to the question?";
+            break;
+        case "extempore":
+            sectionInstruction = "Grade on speech flow, length, vocabulary usage, and if they covered the given topic appropriately. Do not expect verbatim text.";
+            break;
+        default:
+            sectionInstruction = "Provide specific and actionable feedback on their spoken English.";
+    }
 
-Here is the test session data:
-${JSON.stringify(history, null, 2)}
+    const promptText = `You are an expert English Communication Coach grading an SVAR/Versant-style spoken English test.
+I am providing you with the exact unedited transcripts of what the user spoke for the "${sectionType}" section.
+CRITICAL INSTRUCTION FOR THIS SECTION: ${sectionInstruction}
+
+Your job is to provide highly pinpointed, specific, and actionable evaluation. DO NOT give generic advice. Point out exactly which words they fumbled, what grammar they messed up, or where they failed to follow instructions.
+
+Here is the test session data for this section:
+${JSON.stringify(sectionHistory, null, 2)}
 
 Analyze the user's responses against the questions. 
 Return your evaluation STRICTLY as a JSON object with the following structure:
 {
-    "overallScore": 75, // A realistic score out of 100 based on their actual answers
     "strengths": ["Pinpointed strength 1", "Pinpointed strength 2"],
     "weaknesses": ["Pinpointed weakness 1 (quote their exact mistake)", "Pinpointed weakness 2"],
     "detailedFeedback": [
@@ -191,8 +213,7 @@ Return your evaluation STRICTLY as a JSON object with the following structure:
             "coachCorrection": "Point out the exact error and what they SHOULD have said",
             "actionableTip": "A 1-sentence pro-tip to fix this specific issue"
         }
-    ],
-    "finalCoachMessage": "A short, encouraging but strict closing remark summarizing their performance."
+    ]
 }
 Return ONLY valid JSON. Do not include markdown formatting or backticks around the output.`;
 
