@@ -73,8 +73,18 @@ recognition.onresult = (event) => {
 
 // API Call Wrapper
 async function callGemini(promptText) {
-  // Using global window.GEMINI_API_KEY from env.js
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
+  let url = '/api/gemini';
+  
+  // Fallback for local development (if opening file directly)
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:") {
+      const apiKey = typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : window.GEMINI_API_KEY;
+      if (apiKey) {
+          url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
+      } else {
+          console.error("GEMINI_API_KEY is missing for local development.");
+      }
+  }
+
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -85,11 +95,14 @@ async function callGemini(promptText) {
       })
     });
     const data = await res.json();
+    if (!res.ok || !data.candidates) {
+        throw new Error("API Error: " + JSON.stringify(data));
+    }
     let text = data.candidates[0].content.parts[0].text;
     text = text.replace(/^```json/gi, '').replace(/```$/g, '').trim();
     return JSON.parse(text);
   } catch(e) {
-    console.error(e);
+    console.error("Gemini API Call Failed:", e);
     return null;
   }
 }

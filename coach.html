@@ -165,17 +165,24 @@
         </div>
 
         <!-- Mode Buttons: Full Mock or Section Drill -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-          <button id="btnStartFullMock"
-            class="w-full sm:w-auto px-8 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
-            <i class="fa-solid fa-play"></i>
-            <span>Start Full SVAR Mock Test (All 5 Sections)</span>
-          </button>
-          <button id="btnOpenDrillModal"
-            class="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
-            <i class="fa-solid fa-list-check text-sky-600"></i>
-            <span>Unlimited Practice Mode (Specific Section)</span>
-          </button>
+        <div class="flex flex-col items-center justify-center gap-4 pt-2">
+          <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <button id="btnStartFullMock"
+              class="w-full sm:w-auto px-8 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
+              <i class="fa-solid fa-play"></i>
+              <span>Start Full SVAR Mock Test (All 5 Sections)</span>
+            </button>
+            <button id="btnOpenDrillModal"
+              class="w-full sm:w-auto px-6 py-3.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
+              <i class="fa-solid fa-list-check text-sky-600"></i>
+              <span>Unlimited Practice Mode (Specific Section)</span>
+            </button>
+          </div>
+          <!-- NEW: Interview Bot Integration -->
+          <a href="interview.html" class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base text-center">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>Start Conversational Interview Bot</span>
+          </a>
         </div>
 
         <div class="flex items-center justify-center space-x-2 text-xs text-slate-500">
