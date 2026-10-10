@@ -1,3 +1,6 @@
 # Ignore environment variables and API keys
 .env
 env.js
+
+# Ignore the AI generated plan document
+interview_bot_plan.md
