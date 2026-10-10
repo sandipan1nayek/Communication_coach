@@ -3,6 +3,7 @@ let interviewQueue = [];
 let activeTopicContext = [];
 let globalTranscript = [];
 let currentQuestion = null;
+let currentQuestionAttempts = 0;
 
 // DOM Elements
 const setupPhase = document.getElementById('setupPhase');
@@ -136,15 +137,33 @@ document.getElementById('btnGeneratePlan').addEventListener('click', async () =>
         setupLog.textContent = "PDF Parsed. Generating Master Plan... (This takes a few seconds)";
     }
 
-    const prompt = `Act as an expert technical interviewer. Analyze this CV (or topic text). Identify and understand those projects and skills and other technical parts. Generate a JSON array of those, and make 10 main interview questions from each portions(eg. if there are 3 projects, generate 3*10=30 questions, if there are 4 skills/languages, generate 4*10=40 questions, etc.) that actually cover the whole parts. Do not generate generic questions; tailor them specifically to the details in this CV.
+    let prompt = "";
+    if (cvFile) {
+        prompt = `Act as an expert technical interviewer. Analyze this CV.
+Identify every major project, skill, and technical domain.
+For EACH project/skill, divide it into 10 specific "chunks" or sub-topics (e.g., Architecture, Challenges, Scalability, Security, Specific Tech).
+For EACH chunk, generate exactly 1 highly specific main interview question.
+Do not generate generic questions. Tailor them to the CV details.
 
-The JSON array must be a flat list of objects, where each object has:
-- "topic_id": string (e.g., "Project_1", "Skill_React")
-- "text": string (the interview question)
-- "layer": 0
+Output a flat JSON array of objects:
+[
+  { "topic_id": "Project1_Architecture", "text": "Question about...", "layer": 0 },
+  ...
+]
 
-Here is the context data:
+Here is the CV data:
 ${contextData}`;
+    } else {
+        prompt = `Act as an expert technical interviewer. The user wants to practice interviews for the following topic: "${contextData}".
+Do not limit the number of questions. Divide this topic into as many comprehensive "chunks" or sub-topics as possible to thoroughly cover it, especially including the most commonly asked real-world interview questions for this topic.
+For EACH chunk, generate exactly 1 main interview question.
+
+Output a flat JSON array of objects:
+[
+  { "topic_id": "TopicName_ChunkName", "text": "Question about...", "layer": 0 },
+  ...
+]`;
+    }
 
     const plan = await callGemini(prompt);
     
@@ -174,6 +193,7 @@ async function askNextQuestion() {
         activeTopicContext = [];
     }
     currentQuestion = nextQ;
+    currentQuestionAttempts = 0;
     
     displayTopic.textContent = currentQuestion.topic_id.replace(/_/g, ' ');
     displayQuestion.textContent = currentQuestion.text;
@@ -220,18 +240,24 @@ btnStopSpeaking.addEventListener('click', async () => {
 
 // Phase 3: The Orchestrator Logic Router
 async function processAiEvaluation(userText) {
-    const prompt = `Evaluate the user's answer. If the answer is 'correct' and the current_layer is less than 2, generate as many specific follow-up questions as needed to dig deeper into unexplored areas. Do not limit the number of follow-ups, but only generate them if there is more to explore. If the topic is sufficiently covered, or if the current_layer is 2, return an empty array for generated_follow_ups. **Crucial:** Do not generate questions similar to previously asked questions in the provided context.
-
+    const prompt = `You are a technical interview coach. Evaluate the user's answer.
 Context of current topic (history):
 ${activeTopicContext.join('\n')}
 
 Current Question Layer: ${currentQuestion.layer}
+Failed Attempts so far on this question: ${currentQuestionAttempts}
+
+Instructions based on Evaluation Status:
+1. If 'correct': Generate 1 or 2 highly specific follow-up questions to dig deeper (unless layer is 2 or topic is exhausted).
+2. If 'wrong' and Failed Attempts is 0: Generate a 'spoken_response' that provides a gentle HINT to help them get it, but DO NOT give the full answer. Return an empty array for generated_follow_ups.
+3. If 'wrong' and Failed Attempts >= 1: Generate a 'spoken_response' that provides a simple, clear explanation of the correct answer. THEN, in the 'generated_follow_ups' array, generate exactly ONE tricky verification question related to your explanation to ensure they understood.
+4. If 'need improvement' or 'clarification': Generate a 'spoken_response' that tells them what was missing to make it professional, and give an example of a stellar answer. Return an empty array for generated_follow_ups.
 
 Respond STRICTLY in this JSON format:
 {
-  "evaluation_status": "<correct | wrong | need improvement in answer | clarification for ai's misunderstanding>",
-  "spoken_response": "Feedback/transition text",
-  "generated_follow_ups": ["Follow up 1", "Follow up 2"] 
+  "evaluation_status": "<correct | wrong | need improvement | clarification>",
+  "spoken_response": "Feedback/transition/hint/explanation text",
+  "generated_follow_ups": ["Follow up 1", ...]
 }`;
 
     const evalData = await callGemini(prompt);
@@ -251,6 +277,7 @@ Respond STRICTLY in this JSON format:
     
     // Logic Branching based on Evaluation Status
     if(evalData.evaluation_status === 'correct') {
+        currentQuestionAttempts = 0;
         // Queue Injection (Breadth)
         if(evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
             const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
@@ -258,15 +285,31 @@ Respond STRICTLY in this JSON format:
                 topic_id: currentQuestion.topic_id,
                 layer: currentQuestion.layer + 1
             }));
-            interviewQueue.unshift(...mappedFollowUps); // Put at front of line
+            interviewQueue.unshift(...mappedFollowUps); 
         }
         askNextQuestion();
-    } else {
-        // Coach Mode (Wrong, Needs Improvement, or Clarification)
-        // Wait for them to answer again on the SAME topic without adding follow-ups
+    } else if (evalData.evaluation_status === 'wrong') {
+        currentQuestionAttempts++;
+        if (currentQuestionAttempts >= 2 && evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
+            // After 2nd attempt, it generated a tricky verification question. Inject it and move on.
+            const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
+                text: text,
+                topic_id: currentQuestion.topic_id,
+                layer: currentQuestion.layer // Keep layer same to track depth
+            }));
+            interviewQueue.unshift(...mappedFollowUps);
+            askNextQuestion();
+        } else {
+            // Wait for user to retry with the hint
+            statusText.textContent = "Ready for your answer";
+            statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+            liveTranscript.textContent = "Awaiting your retry...";
+        }
+    } else if (evalData.evaluation_status === 'need improvement' || evalData.evaluation_status === 'clarification') {
+        currentQuestionAttempts++;
         statusText.textContent = "Ready for your answer";
         statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        liveTranscript.textContent = "Awaiting your clarification/retrial...";
+        liveTranscript.textContent = "Try answering again professionally based on the feedback...";
     }
 }
 
