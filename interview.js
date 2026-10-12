@@ -177,8 +177,8 @@ Here is the CV data:
 ${contextData}`;
     } else {
         prompt = `Act as an expert technical interviewer. The user wants to practice interviews for the topic: "${contextData}".
-Divide this topic into 3 to 5 logical sub-topics (e.g., Core Fundamentals, Implementation & Practical Scenarios, Performance & Optimization, Edge Cases & Common Pitfalls).
-For EACH sub-topic, generate 2 to 3 distinct, high-quality, real-world interview questions (e.g., 1 conceptual question, 1 practical problem-solving question, 1 edge-case or optimization question).
+Divide this topic into logical sub-topics to cover the full portion of the topic (e.g., Core Fundamentals, Implementation & Practical Scenarios, Performance & Optimization, Edge Cases & Common Pitfalls).
+For EACH sub-topic, generate 2 to 3 distinct, interview questions, specifically most frequently asked questions(e.g., 1 conceptual question, 1 practical problem-solving question, 1 edge-case or optimization question).
 
 CRITICAL REQUIREMENT:
 - All questions belonging to the same sub-topic MUST share the EXACT SAME 'topic_id' and 'topic_title'.
