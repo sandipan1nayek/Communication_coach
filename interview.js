@@ -28,22 +28,22 @@ class AudioEngine {
     if (!this.synth) return;
     const load = () => {
       const voices = this.synth.getVoices();
-      for(let v of voices) {
-         if(v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google'))) {
-             this.selectedVoice = v; break;
-         }
+      for (let v of voices) {
+        if (v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google'))) {
+          this.selectedVoice = v; break;
+        }
       }
-      if(!this.selectedVoice && voices.length > 0) this.selectedVoice = voices[0];
+      if (!this.selectedVoice && voices.length > 0) this.selectedVoice = voices[0];
     };
     load();
-    if(this.synth.onvoiceschanged !== undefined) this.synth.onvoiceschanged = load;
+    if (this.synth.onvoiceschanged !== undefined) this.synth.onvoiceschanged = load;
   }
   speak(text) {
     return new Promise((resolve) => {
-      if(!this.synth) return resolve();
+      if (!this.synth) return resolve();
       this.synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      if(this.selectedVoice) u.voice = this.selectedVoice;
+      if (this.selectedVoice) u.voice = this.selectedVoice;
       u.onend = () => resolve();
       u.onerror = () => resolve();
       this.synth.speak(u);
@@ -85,15 +85,15 @@ if (SpeechRecognition) {
 // API Call Wrapper
 async function callGemini(promptText) {
   let url = '/api/gemini';
-  
+
   // Fallback for local development (if opening file directly)
   if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:") {
-      const apiKey = typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : window.GEMINI_API_KEY;
-      if (apiKey) {
-          url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
-      } else {
-          console.error("GEMINI_API_KEY is missing for local development.");
-      }
+    const apiKey = typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : window.GEMINI_API_KEY;
+    if (apiKey) {
+      url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
+    } else {
+      console.error("GEMINI_API_KEY is missing for local development.");
+    }
   }
 
   try {
@@ -107,12 +107,12 @@ async function callGemini(promptText) {
     });
     const data = await res.json();
     if (!res.ok || !data.candidates) {
-        throw new Error("API Error: " + JSON.stringify(data));
+      throw new Error("API Error: " + JSON.stringify(data));
     }
     let text = data.candidates[0].content.parts[0].text;
     text = text.replace(/^```json/gi, '').replace(/```$/g, '').trim();
     return JSON.parse(text);
-  } catch(e) {
+  } catch (e) {
     console.error("Gemini API Call Failed:", e);
     return null;
   }
@@ -120,41 +120,41 @@ async function callGemini(promptText) {
 
 // PDF Parsing logic using pdf.js
 async function extractTextFromPDF(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-    let fullText = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        fullText += textContent.items.map(item => item.str).join(" ") + " ";
-    }
-    return fullText;
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    fullText += textContent.items.map(item => item.str).join(" ") + " ";
+  }
+  return fullText;
 }
 
 // Phase 1: Input & Skeleton Generation
 document.getElementById('btnGeneratePlan').addEventListener('click', async () => {
-    const topic = document.getElementById('topicInput').value.trim();
-    const cvFile = document.getElementById('cvInput').files[0];
-    
-    if(!topic && !cvFile) return alert("Please provide a topic or upload a CV PDF.");
-    
-    setupLog.textContent = "Analyzing input... Generating Master Plan... (This takes a few seconds)";
-    let contextData = topic;
-    
-    if(cvFile) {
-        setupLog.textContent = "Parsing PDF...";
-        try {
-            contextData = await extractTextFromPDF(cvFile);
-            setupLog.textContent = "PDF Parsed. Generating Master Plan... (This takes a few seconds)";
-        } catch(err) {
-            setupLog.textContent = "Failed to parse PDF: " + err.message;
-            return;
-        }
-    }
+  const topic = document.getElementById('topicInput').value.trim();
+  const cvFile = document.getElementById('cvInput').files[0];
 
-    let prompt = "";
-    if (cvFile) {
-        prompt = `Act as an expert technical interviewer. Analyze this CV.
+  if (!topic && !cvFile) return alert("Please provide a topic or upload a CV PDF.");
+
+  setupLog.textContent = "Analyzing input... Generating Master Plan... (This takes a few seconds)";
+  let contextData = topic;
+
+  if (cvFile) {
+    setupLog.textContent = "Parsing PDF...";
+    try {
+      contextData = await extractTextFromPDF(cvFile);
+      setupLog.textContent = "PDF Parsed. Generating Master Plan... (This takes a few seconds)";
+    } catch (err) {
+      setupLog.textContent = "Failed to parse PDF: " + err.message;
+      return;
+    }
+  }
+
+  let prompt = "";
+  if (cvFile) {
+    prompt = `Act as an expert technical interviewer. Analyze this CV.
 Identify the 3 to 5 most significant projects, technical domains, or key skill areas from the candidate's CV.
 For EACH project or domain, generate 2 to 3 distinct, highly tailored interview questions (e.g., architectural design, real-world challenges/scaling, technical tradeoffs/edge-cases).
 
@@ -175,10 +175,10 @@ Output a flat JSON array of objects:
 
 Here is the CV data:
 ${contextData}`;
-    } else {
-        prompt = `Act as an expert technical interviewer. The user wants to practice interviews for the topic: "${contextData}".
-Divide this topic into logical sub-topics to cover the full portion of the topic (e.g., Core Fundamentals, Implementation & Practical Scenarios, Performance & Optimization, Edge Cases & Common Pitfalls).
-For EACH sub-topic, generate 2 to 3 distinct, interview questions, specifically most frequently asked questions(e.g., 1 conceptual question, 1 practical problem-solving question, 1 edge-case or optimization question).
+  } else {
+    prompt = `Act as an expert technical interviewer. The user wants to practice interviews for the topic: "${contextData}".
+Divide this topic into 10 logical sub-topics to cover the full portion of the topic.
+For EACH sub-topic, generate 2 to 3 distinct, interview questions, specifically most frequently asked questions.
 
 CRITICAL REQUIREMENT:
 - All questions belonging to the same sub-topic MUST share the EXACT SAME 'topic_id' and 'topic_title'.
@@ -194,98 +194,98 @@ Output a flat JSON array of objects:
   },
   ...
 ]`;
-    }
+  }
 
-    const plan = await callGemini(prompt);
-    
-    if(plan && Array.isArray(plan) && plan.length > 0) {
-        interviewQueue = plan;
-        setupPhase.classList.add('hidden');
-        interviewPhase.classList.remove('hidden');
-        askNextQuestion();
-    } else {
-        setupLog.textContent = "Failed to generate plan. Please try again or check console.";
-    }
+  const plan = await callGemini(prompt);
+
+  if (plan && Array.isArray(plan) && plan.length > 0) {
+    interviewQueue = plan;
+    setupPhase.classList.add('hidden');
+    interviewPhase.classList.remove('hidden');
+    askNextQuestion();
+  } else {
+    setupLog.textContent = "Failed to generate plan. Please try again or check console.";
+  }
 });
 
 // Phase 2: Core Execution Loop
 async function askNextQuestion() {
-    if(interviewQueue.length === 0) {
-        displayQuestion.textContent = "Interview Complete! Thank you.";
-        displayTopic.textContent = "Finished";
-        statusText.textContent = "Interview Complete";
-        statusDot.className = "w-2 h-2 rounded-full bg-slate-400";
-        btnStartSpeaking.classList.add('hidden');
-        btnStopSpeaking.classList.add('hidden');
-        liveTranscript.textContent = "You can download your full interview transcript below.";
-        await audio.speak("Interview complete! Thank you for your time. You can now download your transcript below.");
-        return;
-    }
+  if (interviewQueue.length === 0) {
+    displayQuestion.textContent = "Interview Complete! Thank you.";
+    displayTopic.textContent = "Finished";
+    statusText.textContent = "Interview Complete";
+    statusDot.className = "w-2 h-2 rounded-full bg-slate-400";
+    btnStartSpeaking.classList.add('hidden');
+    btnStopSpeaking.classList.add('hidden');
+    liveTranscript.textContent = "You can download your full interview transcript below.";
+    await audio.speak("Interview complete! Thank you for your time. You can now download your transcript below.");
+    return;
+  }
 
-    const nextQ = interviewQueue.shift();
-    
-    // Context Switching Optimization
-    if(currentQuestion && currentQuestion.topic_id !== nextQ.topic_id) {
-        activeTopicContext = [];
-    }
-    currentQuestion = nextQ;
-    currentQuestionAttempts = 0;
-    
-    displayTopic.textContent = currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' ');
-    displayQuestion.textContent = currentQuestion.text;
-    
-    // Store question in contexts
-    globalTranscript.push("Interviewer: " + currentQuestion.text);
-    activeTopicContext.push("Interviewer: " + currentQuestion.text);
-    
-    statusText.textContent = "Interviewer Speaking...";
-    statusDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-    
-    await audio.speak(currentQuestion.text);
-    
-    statusText.textContent = "Ready for your answer";
-    statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-    liveTranscript.textContent = "Click 'Start Answering' to speak.";
+  const nextQ = interviewQueue.shift();
+
+  // Context Switching Optimization
+  if (currentQuestion && currentQuestion.topic_id !== nextQ.topic_id) {
+    activeTopicContext = [];
+  }
+  currentQuestion = nextQ;
+  currentQuestionAttempts = 0;
+
+  displayTopic.textContent = currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' ');
+  displayQuestion.textContent = currentQuestion.text;
+
+  // Store question in contexts
+  globalTranscript.push("Interviewer: " + currentQuestion.text);
+  activeTopicContext.push("Interviewer: " + currentQuestion.text);
+
+  statusText.textContent = "Interviewer Speaking...";
+  statusDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+
+  await audio.speak(currentQuestion.text);
+
+  statusText.textContent = "Ready for your answer";
+  statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+  liveTranscript.textContent = "Click 'Start Answering' to speak.";
 }
 
 // User Speech Controls
 btnStartSpeaking.addEventListener('click', () => {
-    if (!recognition) {
-        return alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
-    }
-    finalTranscript = '';
-    liveTranscript.textContent = 'Listening...';
-    btnStartSpeaking.classList.add('hidden');
-    btnStopSpeaking.classList.remove('hidden');
-    try {
-        recognition.start();
-    } catch(e) {
-        console.warn("Recognition start error:", e);
-    }
+  if (!recognition) {
+    return alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+  }
+  finalTranscript = '';
+  liveTranscript.textContent = 'Listening...';
+  btnStartSpeaking.classList.add('hidden');
+  btnStopSpeaking.classList.remove('hidden');
+  try {
+    recognition.start();
+  } catch (e) {
+    console.warn("Recognition start error:", e);
+  }
 });
 
 btnStopSpeaking.addEventListener('click', async () => {
-    if (recognition) {
-        try { recognition.stop(); } catch(e) {}
-    }
-    btnStartSpeaking.classList.remove('hidden');
-    btnStopSpeaking.classList.add('hidden');
-    
-    const userText = finalTranscript.trim();
-    if(!userText) return alert("I didn't catch that. Please click start and try again.");
-    
-    globalTranscript.push("Candidate: " + userText);
-    activeTopicContext.push("Candidate: " + userText);
-    
-    statusText.textContent = "AI is evaluating...";
-    statusDot.className = "w-2 h-2 rounded-full bg-indigo-400 animate-pulse";
-    
-    await processAiEvaluation(userText);
+  if (recognition) {
+    try { recognition.stop(); } catch (e) { }
+  }
+  btnStartSpeaking.classList.remove('hidden');
+  btnStopSpeaking.classList.add('hidden');
+
+  const userText = finalTranscript.trim();
+  if (!userText) return alert("I didn't catch that. Please click start and try again.");
+
+  globalTranscript.push("Candidate: " + userText);
+  activeTopicContext.push("Candidate: " + userText);
+
+  statusText.textContent = "AI is evaluating...";
+  statusDot.className = "w-2 h-2 rounded-full bg-indigo-400 animate-pulse";
+
+  await processAiEvaluation(userText);
 });
 
 // Phase 3: The Orchestrator Logic Router
 async function processAiEvaluation(userText) {
-    const prompt = `You are a technical interview coach. Evaluate the user's answer.
+  const prompt = `You are a technical interview coach. Evaluate the user's answer.
 Context of current topic (history):
 ${activeTopicContext.join('\n')}
 
@@ -305,93 +305,93 @@ Respond STRICTLY in this JSON format:
   "generated_follow_ups": ["Follow up 1", ...]
 }`;
 
-    const evalData = await callGemini(prompt);
-    
-    if(!evalData) {
-        alert("Evaluation failed. The AI might have timed out.");
-        statusText.textContent = "Error";
-        return;
+  const evalData = await callGemini(prompt);
+
+  if (!evalData) {
+    alert("Evaluation failed. The AI might have timed out.");
+    statusText.textContent = "Error";
+    return;
+  }
+
+  // AI speaks the feedback
+  globalTranscript.push("Interviewer: " + evalData.spoken_response);
+  activeTopicContext.push("Interviewer: " + evalData.spoken_response);
+
+  statusText.textContent = "Interviewer Speaking...";
+  await audio.speak(evalData.spoken_response);
+
+  // Logic Branching based on Evaluation Status
+  if (evalData.evaluation_status === 'correct') {
+    currentQuestionAttempts = 0;
+    // Queue Injection (Breadth)
+    if (evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
+      const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
+        text: text,
+        topic_id: currentQuestion.topic_id,
+        topic_title: currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' '),
+        layer: currentQuestion.layer + 1
+      }));
+      interviewQueue.unshift(...mappedFollowUps);
     }
-    
-    // AI speaks the feedback
-    globalTranscript.push("Interviewer: " + evalData.spoken_response);
-    activeTopicContext.push("Interviewer: " + evalData.spoken_response);
-    
-    statusText.textContent = "Interviewer Speaking...";
-    await audio.speak(evalData.spoken_response);
-    
-    // Logic Branching based on Evaluation Status
-    if(evalData.evaluation_status === 'correct') {
-        currentQuestionAttempts = 0;
-        // Queue Injection (Breadth)
-        if(evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
-            const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
-                text: text,
-                topic_id: currentQuestion.topic_id,
-                topic_title: currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' '),
-                layer: currentQuestion.layer + 1
-            }));
-            interviewQueue.unshift(...mappedFollowUps); 
-        }
-        askNextQuestion();
-    } else if (evalData.evaluation_status === 'wrong') {
-        currentQuestionAttempts++;
-        if (currentQuestionAttempts >= 2) {
-            // After 2nd attempt, explanation was generated. If tricky verification question provided, inject it.
-            if (evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
-                const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
-                    text: text,
-                    topic_id: currentQuestion.topic_id,
-                    topic_title: currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' '),
-                    layer: currentQuestion.layer // Keep layer same to track depth
-                }));
-                interviewQueue.unshift(...mappedFollowUps);
-            }
-            askNextQuestion();
-        } else {
-            // Wait for user to retry with the hint
-            statusText.textContent = "Ready for your answer";
-            statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-            liveTranscript.textContent = "Awaiting your retry...";
-        }
-    } else if (evalData.evaluation_status === 'need improvement' || evalData.evaluation_status === 'clarification') {
-        currentQuestionAttempts++;
-        statusText.textContent = "Ready for your answer";
-        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        liveTranscript.textContent = "Try answering again professionally based on the feedback...";
+    askNextQuestion();
+  } else if (evalData.evaluation_status === 'wrong') {
+    currentQuestionAttempts++;
+    if (currentQuestionAttempts >= 2) {
+      // After 2nd attempt, explanation was generated. If tricky verification question provided, inject it.
+      if (evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
+        const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
+          text: text,
+          topic_id: currentQuestion.topic_id,
+          topic_title: currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' '),
+          layer: currentQuestion.layer // Keep layer same to track depth
+        }));
+        interviewQueue.unshift(...mappedFollowUps);
+      }
+      askNextQuestion();
+    } else {
+      // Wait for user to retry with the hint
+      statusText.textContent = "Ready for your answer";
+      statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+      liveTranscript.textContent = "Awaiting your retry...";
     }
+  } else if (evalData.evaluation_status === 'need improvement' || evalData.evaluation_status === 'clarification') {
+    currentQuestionAttempts++;
+    statusText.textContent = "Ready for your answer";
+    statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+    liveTranscript.textContent = "Try answering again professionally based on the feedback...";
+  }
 }
 
 // Phase 4 & Controls: Skip and Download
 document.getElementById('btnSkipQuestion').addEventListener('click', () => {
-    if(!currentQuestion) return;
-    if (audio && audio.synth) audio.synth.cancel();
-    try { recognition.stop(); } catch(e) {}
-    btnStartSpeaking.classList.remove('hidden');
-    btnStopSpeaking.classList.add('hidden');
-    askNextQuestion();
+  if (!currentQuestion) return;
+  if (audio && audio.synth) audio.synth.cancel();
+  try { recognition.stop(); } catch (e) { }
+  btnStartSpeaking.classList.remove('hidden');
+  btnStopSpeaking.classList.add('hidden');
+  askNextQuestion();
 });
 
 document.getElementById('btnSkipTopic').addEventListener('click', () => {
-    if(!currentQuestion) return;
-    if (audio && audio.synth) audio.synth.cancel();
-    try { recognition.stop(); } catch(e) {}
-    btnStartSpeaking.classList.remove('hidden');
-    btnStopSpeaking.classList.add('hidden');
-    // Filter out all remaining questions for this topic
-    interviewQueue = interviewQueue.filter(q => q.topic_id !== currentQuestion.topic_id);
-    askNextQuestion(); // This will pop a new topic, triggering the context clear
+  if (!currentQuestion) return;
+  if (audio && audio.synth) audio.synth.cancel();
+  try { recognition.stop(); } catch (e) { }
+  btnStartSpeaking.classList.remove('hidden');
+  btnStopSpeaking.classList.add('hidden');
+  // Filter out all remaining questions for this topic
+  interviewQueue = interviewQueue.filter(q => q.topic_id !== currentQuestion.topic_id);
+  askNextQuestion(); // This will pop a new topic, triggering the context clear
 });
 
 document.getElementById('btnDownloadTranscript').addEventListener('click', () => {
-    const text = globalTranscript.join('\n\n');
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Interview_Transcript.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const text = globalTranscript.join('\n\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Interview_Transcript.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
