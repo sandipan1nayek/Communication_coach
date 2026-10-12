@@ -54,23 +54,33 @@ const audio = new AudioEngine();
 
 // STT Engine (Web Speech API)
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRecognition();
-recognition.continuous = true;
-recognition.interimResults = true;
-
+let recognition = null;
 let finalTranscript = '';
 
-recognition.onresult = (event) => {
-  let interimTranscript = '';
-  for (let i = event.resultIndex; i < event.results.length; ++i) {
-    if (event.results[i].isFinal) {
-      finalTranscript += event.results[i][0].transcript + ' ';
-    } else {
-      interimTranscript += event.results[i][0].transcript;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript + ' ';
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
     }
-  }
-  liveTranscript.textContent = finalTranscript + interimTranscript;
-};
+    liveTranscript.textContent = finalTranscript + interimTranscript;
+  };
+
+  recognition.onerror = (event) => {
+    console.warn("Speech recognition warning:", event.error);
+    if (event.error === 'not-allowed') {
+      alert("Microphone permission was denied. Please allow microphone access in your browser.");
+    }
+  };
+}
 
 // API Call Wrapper
 async function callGemini(promptText) {
@@ -133,8 +143,13 @@ document.getElementById('btnGeneratePlan').addEventListener('click', async () =>
     
     if(cvFile) {
         setupLog.textContent = "Parsing PDF...";
-        contextData = await extractTextFromPDF(cvFile);
-        setupLog.textContent = "PDF Parsed. Generating Master Plan... (This takes a few seconds)";
+        try {
+            contextData = await extractTextFromPDF(cvFile);
+            setupLog.textContent = "PDF Parsed. Generating Master Plan... (This takes a few seconds)";
+        } catch(err) {
+            setupLog.textContent = "Failed to parse PDF: " + err.message;
+            return;
+        }
     }
 
     let prompt = "";
@@ -182,7 +197,12 @@ async function askNextQuestion() {
     if(interviewQueue.length === 0) {
         displayQuestion.textContent = "Interview Complete! Thank you.";
         displayTopic.textContent = "Finished";
+        statusText.textContent = "Interview Complete";
+        statusDot.className = "w-2 h-2 rounded-full bg-slate-400";
         btnStartSpeaking.classList.add('hidden');
+        btnStopSpeaking.classList.add('hidden');
+        liveTranscript.textContent = "You can download your full interview transcript below.";
+        await audio.speak("Interview complete! Thank you for your time. You can now download your transcript below.");
         return;
     }
 
@@ -214,15 +234,24 @@ async function askNextQuestion() {
 
 // User Speech Controls
 btnStartSpeaking.addEventListener('click', () => {
+    if (!recognition) {
+        return alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+    }
     finalTranscript = '';
     liveTranscript.textContent = 'Listening...';
     btnStartSpeaking.classList.add('hidden');
     btnStopSpeaking.classList.remove('hidden');
-    recognition.start();
+    try {
+        recognition.start();
+    } catch(e) {
+        console.warn("Recognition start error:", e);
+    }
 });
 
 btnStopSpeaking.addEventListener('click', async () => {
-    recognition.stop();
+    if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+    }
     btnStartSpeaking.classList.remove('hidden');
     btnStopSpeaking.classList.add('hidden');
     
@@ -290,14 +319,16 @@ Respond STRICTLY in this JSON format:
         askNextQuestion();
     } else if (evalData.evaluation_status === 'wrong') {
         currentQuestionAttempts++;
-        if (currentQuestionAttempts >= 2 && evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
-            // After 2nd attempt, it generated a tricky verification question. Inject it and move on.
-            const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
-                text: text,
-                topic_id: currentQuestion.topic_id,
-                layer: currentQuestion.layer // Keep layer same to track depth
-            }));
-            interviewQueue.unshift(...mappedFollowUps);
+        if (currentQuestionAttempts >= 2) {
+            // After 2nd attempt, explanation was generated. If tricky verification question provided, inject it.
+            if (evalData.generated_follow_ups && evalData.generated_follow_ups.length > 0) {
+                const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
+                    text: text,
+                    topic_id: currentQuestion.topic_id,
+                    layer: currentQuestion.layer // Keep layer same to track depth
+                }));
+                interviewQueue.unshift(...mappedFollowUps);
+            }
             askNextQuestion();
         } else {
             // Wait for user to retry with the hint
@@ -314,8 +345,21 @@ Respond STRICTLY in this JSON format:
 }
 
 // Phase 4 & Controls: Skip and Download
+document.getElementById('btnSkipQuestion').addEventListener('click', () => {
+    if(!currentQuestion) return;
+    if (audio && audio.synth) audio.synth.cancel();
+    try { recognition.stop(); } catch(e) {}
+    btnStartSpeaking.classList.remove('hidden');
+    btnStopSpeaking.classList.add('hidden');
+    askNextQuestion();
+});
+
 document.getElementById('btnSkipTopic').addEventListener('click', () => {
     if(!currentQuestion) return;
+    if (audio && audio.synth) audio.synth.cancel();
+    try { recognition.stop(); } catch(e) {}
+    btnStartSpeaking.classList.remove('hidden');
+    btnStopSpeaking.classList.add('hidden');
     // Filter out all remaining questions for this topic
     interviewQueue = interviewQueue.filter(q => q.topic_id !== currentQuestion.topic_id);
     askNextQuestion(); // This will pop a new topic, triggering the context clear
