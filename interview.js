@@ -155,27 +155,43 @@ document.getElementById('btnGeneratePlan').addEventListener('click', async () =>
     let prompt = "";
     if (cvFile) {
         prompt = `Act as an expert technical interviewer. Analyze this CV.
-Identify every major project, skill, and technical domain.
-For EACH project/skill, divide it into 10 specific "chunks" or sub-topics (e.g., Architecture, Challenges, Scalability, Security, Specific Tech).
-For EACH chunk, generate exactly 1 highly specific main interview question.
-Do not generate generic questions. Tailor them to the CV details.
+Identify the 3 to 5 most significant projects, technical domains, or key skill areas from the candidate's CV.
+For EACH project or domain, generate 2 to 3 distinct, highly tailored interview questions (e.g., architectural design, real-world challenges/scaling, technical tradeoffs/edge-cases).
+
+CRITICAL REQUIREMENT:
+- All questions belonging to the same project or domain MUST share the EXACT SAME 'topic_id' and 'topic_title'.
+- A project/domain MUST group multiple questions together under the same topic.
 
 Output a flat JSON array of objects:
 [
-  { "topic_id": "Project1_Architecture", "text": "Question about...", "layer": 0 },
+  { 
+    "topic_id": "ProjectName_Or_Skill", 
+    "topic_title": "Clean Project or Skill Title", 
+    "text": "Detailed question based on CV details...", 
+    "layer": 0 
+  },
   ...
 ]
 
 Here is the CV data:
 ${contextData}`;
     } else {
-        prompt = `Act as an expert technical interviewer. The user wants to practice interviews for the following topic: "${contextData}".
-Do not limit the number of questions. Divide this topic into as many comprehensive "chunks" or sub-topics as possible to thoroughly cover it, especially including the most commonly asked real-world interview questions for this topic.
-For EACH chunk, generate exactly 1 main interview question.
+        prompt = `Act as an expert technical interviewer. The user wants to practice interviews for the topic: "${contextData}".
+Divide this topic into 3 to 5 logical sub-topics (e.g., Core Fundamentals, Implementation & Practical Scenarios, Performance & Optimization, Edge Cases & Common Pitfalls).
+For EACH sub-topic, generate 2 to 3 distinct, high-quality, real-world interview questions (e.g., 1 conceptual question, 1 practical problem-solving question, 1 edge-case or optimization question).
+
+CRITICAL REQUIREMENT:
+- All questions belonging to the same sub-topic MUST share the EXACT SAME 'topic_id' and 'topic_title'.
+- Do NOT make each question its own topic. A sub-topic MUST group multiple questions together under the same topic.
 
 Output a flat JSON array of objects:
 [
-  { "topic_id": "TopicName_ChunkName", "text": "Question about...", "layer": 0 },
+  { 
+    "topic_id": "Subtopic_Snake_Case", 
+    "topic_title": "Clean Subtopic Title", 
+    "text": "Detailed, professional interview question...", 
+    "layer": 0 
+  },
   ...
 ]`;
     }
@@ -215,7 +231,7 @@ async function askNextQuestion() {
     currentQuestion = nextQ;
     currentQuestionAttempts = 0;
     
-    displayTopic.textContent = currentQuestion.topic_id.replace(/_/g, ' ');
+    displayTopic.textContent = currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' ');
     displayQuestion.textContent = currentQuestion.text;
     
     // Store question in contexts
@@ -312,6 +328,7 @@ Respond STRICTLY in this JSON format:
             const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
                 text: text,
                 topic_id: currentQuestion.topic_id,
+                topic_title: currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' '),
                 layer: currentQuestion.layer + 1
             }));
             interviewQueue.unshift(...mappedFollowUps); 
@@ -325,6 +342,7 @@ Respond STRICTLY in this JSON format:
                 const mappedFollowUps = evalData.generated_follow_ups.map(text => ({
                     text: text,
                     topic_id: currentQuestion.topic_id,
+                    topic_title: currentQuestion.topic_title || currentQuestion.topic_id.replace(/_/g, ' '),
                     layer: currentQuestion.layer // Keep layer same to track depth
                 }));
                 interviewQueue.unshift(...mappedFollowUps);
